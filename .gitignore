@@ -2,3 +2,4 @@ __pycache__/
 build/
 dist/
 strain_tools.egg-info/
+.ipynb_checkpoints/
