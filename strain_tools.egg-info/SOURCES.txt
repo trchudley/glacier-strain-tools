@@ -1,0 +1,8 @@
+README.md
+setup.py
+strain_tools.py
+strain_tools.egg-info/PKG-INFO
+strain_tools.egg-info/SOURCES.txt
+strain_tools.egg-info/dependency_links.txt
+strain_tools.egg-info/requires.txt
+strain_tools.egg-info/top_level.txt
