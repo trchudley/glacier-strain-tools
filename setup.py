@@ -11,7 +11,7 @@ setup(
     author_email="chudley.1@osu.edu",
     url="https://github.com/trchudley/glacier-strain-tools",
     py_modules=["strain_tools"],
-    description="Tools for deriving surface-parallel strain rates from glacier velocity fields.",
+    description="Tools for deriving surface-parallel strain rates and directions from glacier velocity fields.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=["numpy", "rasterio", "numba",],
