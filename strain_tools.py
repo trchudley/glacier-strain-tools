@@ -113,7 +113,7 @@ def loc_interp2(rowCoord, colCoord, Vx_array, Vy_array):
 
 
 @njit()
-def log_strain(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1):
+def log_strain_rate(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1):
     """
     Calculates the logarithmic strain rate for a given glacier surface
     velocity field. Python adaptation of Alley et al. (2018) matlab script.
@@ -560,17 +560,16 @@ def principal_strain_rate_directions(e_xx, e_yy, e_xy):
     return e_1, e_1U, e_1V, e_2, e_2U, e_2V, e_M
 
 
-def principal_strain_rate_magnitudes(e_xx, e_yy, e_xy, angle):
+def principal_strain_rate_magnitudes(e_xx, e_yy, e_xy):
     """
     Given e_xx, e_yy, and e_xy, return principal strain rates following
-    the method in Clason et al. (2015) - i.e. not using eigenvectors.
-    Quicker to compute, only returns magnitude values.
+    methods in Nye (1959) and Harper et al. (1998) - i.e. not using
+    eigenvectors. Quicker to compute, only returns magnitude values.
 
     Parameters:
         e_xx: Array of strain rate in xx direction
         e_yy: Array of strain rate in yy direction
         e_xy: Array of strain rate in xy direction
-        angle: array of flow direction in radians
 
     Returns:
         e_1: Array of first principal strain rate
@@ -578,18 +577,9 @@ def principal_strain_rate_magnitudes(e_xx, e_yy, e_xy, angle):
         e_M: Array of mean of first and second principal strain rate
     """
 
-    # calculate shear strain
-    e_shr = ((e_yy - e_xx) * np.cos(angle) * np.sin(angle)) + (
-        e_xy * (np.cos(angle) ** 2 - np.sin(angle) ** 2)
-    )
-
     # Calculate first and second principal strain rates
-    e_1 = 0.5 * (e_xx + e_yy) + np.sqrt(
-        np.square(0.5 * (e_xx - e_yy)) + np.square(e_shr)
-    )
-    e_2 = 0.5 * (e_xx + e_yy) - np.sqrt(
-        np.square(0.5 * (e_xx - e_yy)) + np.square(e_shr)
-    )
+    e_1 = 0.5 * (e_xx + e_yy) + np.sqrt(0.25 * np.square(e_xx - e_yy) + np.square(e_xy))
+    e_2 = 0.5 * (e_xx + e_yy) - np.sqrt(0.25 * np.square(e_xx - e_yy) + np.square(e_xy))
 
     # Calculate mean stress
     e_M = 0.5 * (e_1 + e_2)
@@ -707,7 +697,7 @@ def main(
 
     print("\nCalculating strain rates...")
     start = timeit.default_timer()
-    e_xx, e_yy, e_xy = log_strain(vx, vy, pixel_size, length_scale, tol, ydir)
+    e_xx, e_yy, e_xy = log_strain_rate(vx, vy, pixel_size, length_scale, tol, ydir)
     end = timeit.default_timer()
     print(f"Strain rates calculated. Elapsed time: {end - start} seconds.")
 
