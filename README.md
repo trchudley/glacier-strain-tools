@@ -16,11 +16,11 @@ For simple testing and use on single fields, this tool can be used in the comman
 
 ```$ strain_tools.py vx.tif vy.tif 750 --pixel_size 200 --no_data -9999.0```
 
-where the first three mandatory arguments are the _x_-velocity field, the _y_-velocity field, and the length scale (in distance units). Output strain fields are saved as \*.tif files in the same directory as the input files. Optional flags are available -- see `strain_tools.py -h` -- but particularly important ones are the spatial resolution (`--pixel_size`) as an integer (the script will try and determine this manually but will often throw an error, so it may be prefereable to manually set this), and the value of no_data pixels (`--no_data`) if this value will not automatically be loaded is as NaN values by rasterio or your preferred Python geospatial tool (gdal, georaster, etc.).
+where the first three mandatory arguments are the _x_-velocity field geotiff, the _y_-velocity field geotiff, and the length scale (in distance units). Output strain fields are saved as \*.tif files in the same directory as the input files. Optional flags are available -- see `strain_tools.py -h` -- but particularly important ones are the spatial resolution (`--pixel_size`) as an integer (the script will try and determine this manually but will often throw an error, so it may be prefereable to manually set this), and the value of no_data pixels (`--no_data`) if this value will not automatically be loaded in as NaN values by rasterio.
 
 ## Python functions
 
-It is preferable to use this tool as a Python module:
+It is preferable to use this tool as an imported Python module. `strain_tools` can be installed from the top-level directory via `python setup.py install`. Following installation, it can be used in combination with arrays of _x_ and _y_ velocities within a Python script:
 
 ```
 import rasterio as rs
@@ -47,7 +47,7 @@ vx = np.where(vx == no_data, np.nan, vx)
 vy = np.where(vy == no_data, np.nan, vy)
 
 # Use strain tools functions to calculate strain rate components
-e_xx, e_yy, e_xy = strain_tools.log_strain(vx, vy, pixel_size, length_scale)
+e_xx, e_yy, e_xy = strain_tools.log_strain_rate(vx, vy, pixel_size, length_scale)
 angle = strain_tools.flow_direction(vx, vy)
 e_1, e_1U, e_1V, e_2, e_2U, e_2V, e_M = strain_tools.principal_strain_rate_directions(e_xx, e_yy, e_xy)
 e_lon, e_trn, e_shr = strain_tools.rotated_strain_rates(e_xx, e_yy, e_xy, angle)
