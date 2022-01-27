@@ -230,12 +230,12 @@ def log_strain_rate(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1):
             # represents twice the dimensions of the strain square in order
             # to make later calculations. This is the "local grid"
             sqVx = vx[
-                (i - (locMult * r)) : (i + (locMult * r) + 1),
-                (j - (locMult * r)) : (j + (locMult * r) + 1),
+                (i - (locMult * r)): (i + (locMult * r) + 1),
+                (j - (locMult * r)): (j + (locMult * r) + 1),
             ]
             sqVy = vy[
-                (i - (locMult * r)) : (i + (locMult * r) + 1),
-                (j - (locMult * r)) : (j + (locMult * r) + 1),
+                (i - (locMult * r)): (i + (locMult * r) + 1),
+                (j - (locMult * r)): (j + (locMult * r) + 1),
             ]
 
             # Extract the x- and y-velocities at the original stake positions
@@ -253,8 +253,8 @@ def log_strain_rate(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1):
             # Extract an array around the center point (i,j) that represents
             # just the strain square in order to calculate the average velocity
             # at the center point and determine a reasonable time interval
-            sqVxmean = vx[(i - r) : (i + r + 1), (j - r) : (j + r + 1)]
-            sqVymean = vy[(i - r) : (i + r + 1), (j - r) : (j + r + 1)]
+            sqVxmean = vx[(i - r): (i + r + 1), (j - r): (j + r + 1)]
+            sqVymean = vy[(i - r): (i + r + 1), (j - r): (j + r + 1)]
             [sqRows, sqCols] = sqVx.shape
 
             # Calculate mean velocity
@@ -327,7 +327,8 @@ def log_strain_rate(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1):
                 # Calculate the column and row positions according to the
                 # improved Euler method to check for accuracy.
                 checkRowCoords = (
-                    curRows - ydir * 0.5 * (curYVels + checkYVels) * dt / pixel_size
+                    curRows - ydir * 0.5 *
+                    (curYVels + checkYVels) * dt / pixel_size
                 )
                 checkColCoords = (
                     curCols + 0.5 * (curXVels + checkXVels) * dt / pixel_size
@@ -499,7 +500,8 @@ def principal_strain_rate_directions(e_xx, e_yy, e_xy):
 
     # Create strain tensors
     zeros = np.zeros(e_xy.shape)
-    stack = np.dstack((e_xx, e_xy, zeros, e_xy, e_yy, zeros, zeros, zeros, zeros))
+    stack = np.dstack((e_xx, e_xy, zeros, e_xy, e_yy,
+                      zeros, zeros, zeros, zeros))
     # NB current shape of strain tensor at [I, J] is (9,).
     # Will reshape to (3,3) at pixel loop.
 
@@ -554,10 +556,7 @@ def principal_strain_rate_directions(e_xx, e_yy, e_xy):
     e_2U = e_2 * e_2U
     e_2V = e_2 * e_2V
 
-    # Calculate mean surface-parallel stress
-    e_M = 0.5 * (e_1 + e_2)
-
-    return e_1, e_1U, e_1V, e_2, e_2U, e_2V, e_M
+    return e_1, e_1U, e_1V, e_2, e_2U, e_2V
 
 
 def principal_strain_rate_magnitudes(e_xx, e_yy, e_xy):
@@ -574,17 +573,15 @@ def principal_strain_rate_magnitudes(e_xx, e_yy, e_xy):
     Returns:
         e_1: Array of first principal strain rate
         e_2: Array of second principal strain rate
-        e_M: Array of mean of first and second principal strain rate
     """
 
     # Calculate first and second principal strain rates
-    e_1 = 0.5 * (e_xx + e_yy) + np.sqrt(0.25 * np.square(e_xx - e_yy) + np.square(e_xy))
-    e_2 = 0.5 * (e_xx + e_yy) - np.sqrt(0.25 * np.square(e_xx - e_yy) + np.square(e_xy))
+    e_1 = 0.5 * (e_xx + e_yy) + np.sqrt(0.25 *
+                                        np.square(e_xx - e_yy) + np.square(e_xy))
+    e_2 = 0.5 * (e_xx + e_yy) - np.sqrt(0.25 *
+                                        np.square(e_xx - e_yy) + np.square(e_xy))
 
-    # Calculate mean stress
-    e_M = 0.5 * (e_1 + e_2)
-
-    return e_1, e_2, e_M
+    return e_1, e_2
 
 
 def flow_direction(vx, vy):
@@ -681,10 +678,11 @@ def main(
         # if pixel_size isn't defined, use rasterio to extract resolution
         if pixel_size is None:
             try:
-                pixel_size_x = src.affine[0]
-                pixel_size_y = -src.affine[4]
+                pixel_size_x = src.res[0]
+                pixel_size_y = src.res[1]
                 if not pixel_size_x == pixel_size_y:
                     raise ValueError("Pixel resolutions not equal")
+                pixel_size = pixel_size_x
             except ValueError:
                 print(
                     f"Error: pixel resolutions in x and y resolutions are not equal ({pixel_size_x} and {pixel_size_y}). Consider setting pixel size manually with -p."
@@ -697,7 +695,8 @@ def main(
 
     print("\nCalculating strain rates...")
     start = timeit.default_timer()
-    e_xx, e_yy, e_xy = log_strain_rate(vx, vy, pixel_size, length_scale, tol, ydir)
+    e_xx, e_yy, e_xy = log_strain_rate(
+        vx, vy, pixel_size, length_scale, tol, ydir)
     end = timeit.default_timer()
     print(f"Strain rates calculated. Elapsed time: {end - start} seconds.")
 

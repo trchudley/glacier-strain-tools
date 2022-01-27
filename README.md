@@ -46,17 +46,17 @@ with rs.open(vy_fpath) as src:
 vx = np.where(vx == no_data, np.nan, vx)
 vy = np.where(vy == no_data, np.nan, vy)
 
-# Use strain tools functions to calculate strain rate components
-e_xx, e_yy, e_xy = strain_tools.log_strain_rate(vx, vy, pixel_size, length_scale)
+# Use strain_tools functions to calculate strain rate components
+e_xx, e_yy, e_xy = strain_tools.log_strain_rates(vx, vy, pixel_size, length_scale)
 angle = strain_tools.flow_direction(vx, vy)
-e_1, e_1U, e_1V, e_2, e_2U, e_2V, e_M = strain_tools.principal_strain_rate_directions(e_xx, e_yy, e_xy)
+e_1, e_1U, e_1V, e_2, e_2U, e_2V = strain_tools.principal_strain_rate_directions(e_xx, e_yy, e_xy)
 e_lon, e_trn, e_shr = strain_tools.rotated_strain_rates(e_xx, e_yy, e_xy, angle)
 e_E = strain_tools.effective_strain_rate(e_xx, e_yy, e_xy)
 ```
 
 The *U* and *V* components of the principal strain rate fields can be visualised within a matplotlib quiverplot. See the included jupyter notebook for an example of this.
 
-### log_strain_rate
+### log_strain_rates
 
 ```exx, eyy, exy = log_strain_rate(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1)```
 
@@ -64,15 +64,15 @@ Given vx and vy fields alongside the pixel size and desires length scale, return
 
 ### principal_strain_rate_directions
 
-```e_1, e_1U, e_1V, e_2, e_2U, e_2V, e_M = principal_strain_rate_directions(e_xx, e_yy, e_xy)```
+```e_1, e_1U, e_1V, e_2, e_2U, e_2V = principal_strain_rate_directions(e_xx, e_yy, e_xy)```
 
-Given e<sub>xx</sub>, e<sub>yy</sub>, and e<sub>xy</sub>, return the magnitude and directions of principal strain rates (and mean surface-parallel strain rate) as output by the logarithmic_strain function. Implementation of Python script from Chudley _et al._ (2021).
+Given e<sub>xx</sub>, e<sub>yy</sub>, and e<sub>xy</sub>, return the magnitude and directions of principal strain rates as output by the logarithmic_strain function. Implementation of Python script from Chudley _et al._ (2021).
 
 ### principal_strain_rate_magnitudes
 
-```e_1, e_2, e_M = principal_strain_rate_magnitudes(e_xx, e_yy, e_xy, angle)```
+```e_1, e_2 = principal_strain_rate_magnitudes(e_xx, e_yy, e_xy, angle)```
 
-Given e<sub>xx</sub>, e<sub>yy</sub>, and e<sub>xy</sub>, return principal surface-parallel strain rates (and mean surface-parallel strain rate) following Nye (1959) and Harper _et al._ (1998) - i.e. not using eigenvectors. Quicker to compute, only returns magnitude values.
+Given e<sub>xx</sub>, e<sub>yy</sub>, and e<sub>xy</sub>, return principal surface-parallel strain rates following Nye (1959) and Harper _et al._ (1998) - i.e. not using eigenvectors. Quicker to compute, only returns magnitude values.
 
 ### flow_direction
 
