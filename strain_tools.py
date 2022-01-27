@@ -113,7 +113,7 @@ def loc_interp2(rowCoord, colCoord, Vx_array, Vy_array):
 
 
 @njit()
-def log_strain_rate(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1):
+def log_strain_rates(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1):
     """
     Calculates the logarithmic strain rate for a given glacier surface
     velocity field. Python adaptation of Alley et al. (2018) matlab script.

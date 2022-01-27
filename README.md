@@ -58,7 +58,7 @@ The *U* and *V* components of the principal strain rate fields can be visualised
 
 ### log_strain_rates
 
-```exx, eyy, exy = log_strain_rate(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1)```
+```exx, eyy, exy = log_strain_rates(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1)```
 
 Given vx and vy fields alongside the pixel size and desires length scale, returns the logarithmic strain rates (e<sub>xx</sub>, e<sub>yy</sub>, e<sub>xy</sub>) for a given glacier surface velocity field. Python adaptation of Alley et al. (2018) matlab script, itself based on principles from Nye (1959).
 
