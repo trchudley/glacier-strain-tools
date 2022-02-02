@@ -67,7 +67,7 @@ from numba import njit
 def loc_interp2(rowCoord, colCoord, Vx_array, Vy_array):
     """
     Carries out a bilinear interpolation at index [rowCoord, colCoord]
-    within a local square.
+    within a local square. Python adaptation of Alley et al. (2018) matlab script.
 
     Variable names remain the same as in matlab script for continuity.
 

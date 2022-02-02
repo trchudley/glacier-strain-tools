@@ -2,13 +2,21 @@
 
 _Tools for deriving surface-parallel strain rates from glacier velocity fields._
 
+## Overview
+
 This tool implements (i) a Python version of the matlab script presented in Alley *et al.* (2018) to calculate logarithmic strain rates from remotely sensed glacier surface velocity fields (in the _x_- and _y_- directions); (ii) code adapted from Chudley *et al.* (2021) to calculate the magnitude and directions of the surface-parallel principal strain rates; (iii) functions for determining further strain rate components (longitudinal, transverse, shear, effective).
+
+After downloading, `strain_tools` can be installed from the top-level directory via `pip install .`.
 
 ## Dependencies
 
- - numpy
- - rasterio
- - numba
+This module was created using a conda installation of Python v3.7.11 with the following packages:
+
+ - numpy v1.20.3
+ - rasterio v1.2.6
+ - numba v0.54.1
+
+ Other variations have not been tested. 
 
 ## Command line use
 
@@ -20,7 +28,7 @@ where the first three mandatory arguments are the _x_-velocity field geotiff, th
 
 ## Python functions
 
-It is preferable to use this tool as an imported Python module. `strain_tools` can be installed from the top-level directory via `python setup.py install`. Following installation, it can be used in combination with arrays of _x_ and _y_ velocities within a Python script:
+It is preferable to use this tool as an imported Python module. `strain_tools` can be installed from the top-level directory via `pip install .`. Following installation, it can be used in combination with numpy arrays of _x_ and _y_ velocities within a Python script:
 
 ```
 import rasterio as rs
@@ -58,7 +66,7 @@ The *U* and *V* components of the principal strain rate fields can be visualised
 
 ### log_strain_rates
 
-```exx, eyy, exy = log_strain_rates(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1)```
+```e_xx, e_yy, e_xy = log_strain_rates(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1)```
 
 Given vx and vy fields alongside the pixel size and desires length scale, returns the logarithmic strain rates (e<sub>xx</sub>, e<sub>yy</sub>, e<sub>xy</sub>) for a given glacier surface velocity field. Python adaptation of Alley et al. (2018) matlab script, itself based on principles from Nye (1959).
 
