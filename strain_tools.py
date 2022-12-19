@@ -32,7 +32,7 @@ Citations:
 
 Alley et al. (2018). Continent-wide estimates of Antarctic strain rates from
 Landsat 8-derived velocity grids. Journal of Glaciology, 64(244)
-321–332. https://doi.org/10.1017/jog.2018.23
+321-332. https://doi.org/10.1017/jog.2018.23
 
 Chudley et al. (2021). Controls on water storage and drainage in crevasses on
 the Greenland Ice Sheet. Journal of Geophysical Research: Earth Surface,
@@ -668,6 +668,7 @@ def effective_strain_rate(e_xx, e_yy, e_xy):
 def main(
     vx_fpath, vy_fpath, length_scale, pixel_size=None, no_data=np.nan, tol=10e-4, ydir=1
 ):
+    """main"""
 
     print("\nOpening velocities as arrays...")
     with rs.open(vx_fpath) as src:
@@ -695,7 +696,7 @@ def main(
 
     print("\nCalculating strain rates...")
     start = timeit.default_timer()
-    e_xx, e_yy, e_xy = log_strain_rate(
+    e_xx, e_yy, e_xy = log_strain_rates(
         vx, vy, pixel_size, length_scale, tol, ydir)
     end = timeit.default_timer()
     print(f"Strain rates calculated. Elapsed time: {end - start} seconds.")
@@ -704,7 +705,7 @@ def main(
     angle = flow_direction(vx, vy)
 
     print("\nGetting principal strain rates...")
-    e_1, e_1U, e_1V, e_2, e_2U, e_2V, e_M = principal_strain_rate_directions(
+    e_1, e_1U, e_1V, e_2, e_2U, e_2V = principal_strain_rate_directions(
         e_xx, e_yy, e_xy
     )
     # e_1, e_2, e_M = principal_strain_rate_magnitudes(e_xx, e_yy, e_xy, angle)
@@ -717,24 +718,24 @@ def main(
 
     print("\nWriting geotiffs...")
 
-    def geotiffwrite(dirpath, array, name, lengthscale, meta):
+    def geotiffwrite(dirpath, array, name, lengthscale, profile):
         fpath = os.path.join(dirpath, f"log_{name}_{lengthscale}m.tif")
-        with rs.open(fpath, "w", **meta) as dst:
+        with rs.open(fpath, "w", **profile) as dst:
             dst.write(array, 1)
 
     outdir = os.path.dirname(vx_fpath)
 
     with rs.open(vx_fpath) as src:
-        meta = src.meta
-        meta.update(dtype=rs.float64)
+        profile = src.profile
+        profile.update(dtype=rs.float32, compress='lzw', predictor=3)
 
-    geotiffwrite(outdir, e_1, "e_1", length_scale, meta)
-    geotiffwrite(outdir, e_2, "e_2", length_scale, meta)
-    geotiffwrite(outdir, e_M, "e_M", length_scale, meta)
-    geotiffwrite(outdir, e_lon, "e_lon", length_scale, meta)
-    geotiffwrite(outdir, e_trn, "e_trn", length_scale, meta)
-    geotiffwrite(outdir, e_shr, "e_shr", length_scale, meta)
-    geotiffwrite(outdir, e_E, "e_E", length_scale, meta)
+    geotiffwrite(outdir, e_1, "e_1", length_scale, profile)
+    geotiffwrite(outdir, e_2, "e_2", length_scale, profile)
+    # geotiffwrite(outdir, e_M, "e_M", length_scale, profile)
+    geotiffwrite(outdir, e_lon, "e_lon", length_scale, profile)
+    geotiffwrite(outdir, e_trn, "e_trn", length_scale, profile)
+    geotiffwrite(outdir, e_shr, "e_shr", length_scale, profile)
+    geotiffwrite(outdir, e_E, "e_E", length_scale, profile)
 
     print("\nComplete.")
 
