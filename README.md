@@ -20,7 +20,7 @@ It is recommended to install these dependencies into your conda environment befo
 
 ## Command line use
 
-For simple testing and use on single fields, this tool can be used in the command line, although the implementation is crude and use within Python is prefered.
+For simple testing and use on single fields, this tool can be used in the command line, although the implementation is simple and use within Python will ikely be preferred for most custom cases.
 
 ```$ strain_tools vx.tif vy.tif 750 --pixel_size 200 --no_data -9999.0```
 
@@ -43,7 +43,7 @@ no_data = -9999.0   # pixel value of nodata cells, if applicable
 pixel_size = 200    # metres
 length_scale = 750  # metres
 
-# Get vx and vy arrays with rasterio
+# Get vx and vy arrays with rioxarray
 vx = rxr.open_rasterio(vx_fpath).squeeze()
 vy = rxr.open_rasterio(vy_fpath).squeeze()
 
@@ -52,14 +52,14 @@ vx = vx.where(vx != no_data, np.nan)
 vy = vy.where(vy != no_data, np.nan)
 
 # Use strain_tools functions to calculate strain rate components
-lsr = log_strain_rates(vx, vy, pixel_size, length_scale, tol, ydir)
-psr = principal_strain_rate_directions(lsr.e_xx, lsr.e_yy, lsr.e_xy)
+lsr = strain_tools.log_strain_rates(vx, vy, pixel_size, length_scale, tol, ydir)
+psr = strain_tools.principal_strain_rate_directions(lsr.e_xx, lsr.e_yy, lsr.e_xy)
 angle = strain_tools.flow_direction(vx, vy)
-rsr = rotated_strain_rates(lsr.e_xx, lsr.e_yy, lsr.e_xy, angle)
-e_E = effective_strain_rate(lsr.e_xx, lsr.e_yy, lsr.e_xy)
+rsr = strain_tools.rotated_strain_rates(lsr.e_xx, lsr.e_yy, lsr.e_xy, angle)
+e_E = strain_tools.effective_strain_rate(lsr.e_xx, lsr.e_yy, lsr.e_xy)
 ```
 
-Functions will accept a numpy array or an xarray Dataarray, and will return the same data type.
+Functions will accept a numpy array or an xarray Dataarray, and will return the same data type. 
 
 ## List of functions
 
@@ -110,10 +110,8 @@ Calculates the strain rate uncertainty field from a provided vx and vy error fie
 
 ## Usage Notes
 
- - Consider effect of pixel size and length_scale. Large length scales
-    relative to the pixel size will result in slow processing.
- - This script has yet to implement the ice thickness function in the
-    original Alley script.
+ - Consider effect of pixel size and length_scale. Large length scales relative to the pixel size will result in slow processing.
+ - This script has yet to implement the ice thickness function in the original Alley script.
 
 ## To Do
 
