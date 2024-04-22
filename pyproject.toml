@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "strain_tools"
-version = "0.2.0"
+dynamic = ["version"]
 description = "Tools for deriving surface-parallel strain rates and directions from glacier velocity fields."
 keywords = [ "glaciology", "ice", "ice sheet", "glacier", "velocity", "dynamics","geospatial", "satellite"]
 classifiers = [ "Intended Audience :: Science/Research", "Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent", "Topic :: Scientific/Engineering", "Topic :: Scientific/Engineering :: GIS", "Topic :: Scientific/Engineering :: Image Processing",]
@@ -29,6 +29,9 @@ Issues = "https://github.com/trchudley/glacier-strain-tools/issues"
 
 [project.scripts]
 strain_tools = "strain_tools._cli:cli"
+
+[tool.setuptools.dynamic]
+version = {attr = "strain_tools.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
