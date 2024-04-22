@@ -332,7 +332,7 @@ def strain_rate_uncertainty(
     """
     Calculate strain rate uncertainty following Poinar and Andrews (2021, eq. 4):
 
-    $\delta_{\dot{\epsilon}} = \frac{1}{\Delta x} \sqrt{(\delta u)^2 + (\delta v)^2}$
+    $\\delta_{\\dot{\epsilon}} = \\frac{1}{\\Delta x} \sqrt{(\\delta u)^2 + (\\delta v)^2}$
 
     Where Δx is the baseline distance between observation points (i.e. the lengthscale),
     and δu and δv are the velocity uncertainties in the x and y directions.
