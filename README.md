@@ -16,7 +16,7 @@ This module was created using a conda installation of Python with the following 
  - rioxarray
  - numba
 
-It is recommended to install these dependencies into your conda environment before downloading this repository and installing `strain_tools` from the top-level directory with `pip install .`.
+It is recommended to install these dependencies into your conda environment before downloading this repository (an `environment.yml` is provided to aid with this) and installing `strain_tools` from the top-level directory with `pip install .`.
 
 ## Command line use
 
@@ -52,7 +52,7 @@ vx = vx.where(vx != no_data, np.nan)
 vy = vy.where(vy != no_data, np.nan)
 
 # Use strain_tools functions to calculate strain rate components
-lsr = strain_tools.log_strain_rates(vx, vy, pixel_size, length_scale, tol, ydir)
+lsr = strain_tools.log_strain_rates(vx, vy, pixel_size, length_scale)
 psr = strain_tools.principal_strain_rate_directions(lsr.e_xx, lsr.e_yy, lsr.e_xy)
 angle = strain_tools.flow_direction(vx, vy)
 rsr = strain_tools.rotated_strain_rates(lsr.e_xx, lsr.e_yy, lsr.e_xy, angle)
