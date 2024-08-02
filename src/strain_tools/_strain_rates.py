@@ -351,12 +351,10 @@ def strain_rate_uncertainty(
     if type(ve_x) != type(ve_y):
         raise ValueError("Input velocity uncertainties must be of same type")
     elif type(ve_x) == xr.DataArray:
-        ve_x_arr = ve_x.values
-        ve_y_arr = ve_y.values
+        ve_x = ve_x.values
+        ve_y = ve_y.values
         output = "xarray"
     elif type(ve_x) == np.ndarray:
-        ve_x_arr = ve_x
-        ve_y_arr = ve_y
         output = "numpy"
     else:
         raise ValueError(
@@ -364,7 +362,7 @@ def strain_rate_uncertainty(
         )
 
     # Calculate strain rate uncertainty as a numpy array
-    uncertainty = (1 / 2 * length_scale) * np.sqrt((ve_x_arr) ** 2 + (ve_y_arr) ** 2)
+    uncertainty = (1 / 2 * length_scale) * np.sqrt((ve_x) ** 2 + (ve_y) ** 2)
 
     if output == "xarray":
         return ve_x * 0 + uncertainty
