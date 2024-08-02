@@ -12,7 +12,7 @@ from ._strain_rates import (
 
 from . import _cli
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 
 # # # for testing only - reload modules ---------

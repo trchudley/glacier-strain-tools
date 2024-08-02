@@ -364,7 +364,7 @@ def strain_rate_uncertainty(
         )
 
     # Calculate strain rate uncertainty as a numpy array
-    uncertainty = (1 / 2 * length_scale) * np.sqrt((ve_x_arr) ** 2 + (ve_y_arr) ** 2)
+    uncertainty = (1 / (2 * length_scale) ) * np.sqrt( (ve_x_arr ** 2) + (ve_y_arr ** 2) ) 
 
     if output == "xarray":
         return ve_x * 0 + uncertainty
