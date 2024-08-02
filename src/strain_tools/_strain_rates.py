@@ -242,7 +242,10 @@ def flow_direction(vx: np.ndarray | xr.DataArray, vy: np.ndarray | xr.DataArray)
 
     angle = np.deg2rad(angle)
 
-    return angle
+    if type(angle) == xr.DataArray:
+        return angle.rename('angle')
+    else:
+        return angle
 
 
 def rotated_strain_rates(
@@ -321,7 +324,10 @@ def effective_strain_rate(
     # Calculate effective strain rate (Cuffey & Paterson p.59)
     e_E = np.sqrt(0.5 * (e_xx**2 + e_yy**2) + e_xy**2)
 
-    return e_E
+    if type(e_E) == xr.DataArray:
+        return e_E.rename('e_E')
+    else:
+        return e_E
 
 
 def strain_rate_uncertainty(
@@ -367,6 +373,6 @@ def strain_rate_uncertainty(
     uncertainty = (1 / (2 * length_scale) ) * np.sqrt( (ve_x_arr ** 2) + (ve_y_arr ** 2) ) 
 
     if output == "xarray":
-        return ve_x * 0 + uncertainty
+        return (ve_x * 0 + uncertainty).rename('uncertainty')
     else:
         return uncertainty
