@@ -10,6 +10,8 @@ from ._strain_rates import (
     strain_rate_uncertainty,
 )
 
+from . import _numba
+
 from . import _cli
 
 __version__ = "0.2.1"

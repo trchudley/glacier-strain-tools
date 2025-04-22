@@ -1,5 +1,5 @@
 """
-Hidden numba-wrapped functions to calculate strain rate magnitude following Alley _et 
+Hidden numba-wrapped functions to calculate strain rate magnitude following Alley _et
 al._ (2018) and direction following Chudley et al. (2021).
 """
 
@@ -163,6 +163,10 @@ def _log_strain_rates(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1):
             meanX = np.nanmean(sqVxmean)
             meanY = np.nanmean(sqVymean)
             meanVel = np.sqrt(meanX**2 + meanY**2)
+
+            # Skip to next pixel in very rare edge case where mean velocity is zero
+            if meanVel == 0.0:
+                continue
 
             # Let the stakes move by approximately one tenth of the length scale
             time = 0.1 * r * pixel_size / meanVel
