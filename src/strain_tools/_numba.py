@@ -303,14 +303,18 @@ def _log_strain_rates(vx, vy, pixel_size, length_scale, tol=10e-4, ydir=1):
                         )
 
                         # Calculate the current strains and strain rates
-                        stra1 = np.log(lfa1 / lLasta1)
-                        stra2 = np.log(lfa2 / lLasta2)
-                        strb1 = np.log(lfb1 / lLastb1)
-                        strb2 = np.log(lfb2 / lLastb2)
-                        strc1 = np.log(lfc1 / lLastc1)
-                        strc2 = np.log(lfc2 / lLastc2)
-                        strd1 = np.log(lfd1 / lLastd1)
-                        strd2 = np.log(lfd2 / lLastd2)
+                        try:
+                            stra1 = np.log(lfa1 / lLasta1)
+                            stra2 = np.log(lfa2 / lLasta2)
+                            strb1 = np.log(lfb1 / lLastb1)
+                            strb2 = np.log(lfb2 / lLastb2)
+                            strc1 = np.log(lfc1 / lLastc1)
+                            strc2 = np.log(lfc2 / lLastc2)
+                            strd1 = np.log(lfd1 / lLastd1)
+                            strd2 = np.log(lfd2 / lLastd2)
+                        # Catch zero division errors within numba
+                        except:
+                            continue
 
                         # Update the new rows and columns as current
                         curRows = newRowCoords
@@ -490,7 +494,10 @@ def _principal_strain_rate_directions(
 
                 # principal strain rates from eigenvalues, and principal
                 #  strain rate directions from eigenvectors
-                eigvals, eigvecs = np.linalg.eigh(strain[0:2, 0:2])
+                try:
+                    eigvals, eigvecs = np.linalg.eigh(strain[0:2, 0:2])
+                except:
+                    pass
 
                 # NB np.lingalg.eigh (cf. np.linalg.eig) returns sorted
                 # eigenvalues and assumes a symmetric matrix, both useful
