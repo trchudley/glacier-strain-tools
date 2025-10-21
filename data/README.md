@@ -1,5 +1,11 @@
-These velocity data cover a region of the West Greenland Ice Sheet from Store Glacier to Perlefiup Sermia. The data and region of interest are the same as that of Chudley _et al._ (2021). The _vx_ and _vy_ fields provided are 2018 annual velocity fields from the _MEaSUREs Greenland Annual Ice Sheet Velocity Mosaics from SAR and Landsat_ dataset, available from the National Snow and Ice Data Centre (https://doi.org/10.5067/OBXCG75U7540; Joughin, 2010). 
+# `README.md`
 
-> Chudley _et al._ (2021). Controls on water storage and drainage in crevasses on the Greenland Ice Sheet. _Journal of Geophysical Research: Earth Surface_, _126_, e2021JF006287. https://doi.org/10.1029/2021JF006287
+This directory contains example velocity fields for Store Glacier (Sermeq Kujalleq), an outlet glacier of the western Greenland Ice Sheet.
 
-> Joughin (2010). Greenland Flow Variability from Ice-Sheet-Wide Velocity Mapping. _Journal of Glaciology_. _56_. 415-430. https://doi.org/10.3189/002214310792447734
+The velocity data is from ITS_LIVE multi-annual velocity mosaic:
+
+> Gardner _et al._ (2025). ITS_LIVE Regional Glacier and Ice Sheet Surface Velocities: Version 2. Data archived at National Snow and Ice Data Center; https://doi:10.5067/6II6VW8LLWJ7.
+
+The mask is the PROMICE-2022 ice mask:
+
+> Luetzenburg _et al._ (2025). PROMICE-2022 Ice Mask V2. Data archived at the GEUS Dataverse. https://doi.org/10.22008/FK2/O8CLRE.

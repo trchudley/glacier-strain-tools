@@ -1,5 +1,5 @@
 """
-Command line interface for strain rate generator - will run via project.toml setup from 
+Command line interface for strain rate generator - will run via project.toml setup from
 command line using `strain_tools` command.
 """
 
@@ -7,9 +7,8 @@ import os, argparse, timeit
 
 import rioxarray as rxr
 
-# import rasterio as rs
-
-from ._strain_rates import *
+from .strain import *
+from ._utils import flow_direction
 
 
 def cli():
@@ -98,21 +97,23 @@ def main(
 
     print("\nCalculating strain rates...")
     start = timeit.default_timer()
-    lsr = log_strain_rates(vx, vy, pixel_size, length_scale, tol, ydir)
+    # lsr = log_strain_rates(vx, vy, pixel_size, length_scale, tol, ydir)
+    lsr = logarithmic(vx, vy, pixel_size, length_scale, tol, ydir)
     end = timeit.default_timer()
     print(f"\nStrain rates calculated. Elapsed time: {end - start} seconds.")
 
     print("\nGetting principal strain rates...")
-    psr = principal_strain_rate_directions(lsr.e_xx, lsr.e_yy, lsr.e_xy)
+    psr = principal(lsr.e_xx, lsr.e_yy, lsr.e_xy)
+    # psr = principal_strain_rate_directions(lsr.e_xx, lsr.e_yy, lsr.e_xy)
 
     print("\nGetting flow direction...")
     angle = flow_direction(vx, vy)
 
     print("\nGetting rotated strain rates...")
-    rsr = rotated_strain_rates(lsr.e_xx, lsr.e_yy, lsr.e_xy, angle)
+    rsr = rotated(lsr.e_xx, lsr.e_yy, lsr.e_xy, angle)
 
     print("\nGetting effective strain rate...")
-    e_E = effective_strain_rate(lsr.e_xx, lsr.e_yy, lsr.e_xy)
+    e_E = effective(lsr.e_xx, lsr.e_yy, lsr.e_xy)
 
     print("\nWriting geotiffs...")
 
@@ -122,13 +123,8 @@ def main(
 
     outdir = os.path.dirname(vx_fpath)
 
-    # with rs.open(vx_fpath) as src:
-    #     profile = src.profile
-    #     profile.update(dtype=rs.float32, compress="lzw", predictor=3)
-
     geotiffwrite(outdir, psr.e_1, "e_1", length_scale)
     geotiffwrite(outdir, psr.e_2, "e_2", length_scale)
-    # geotiffwrite(outdir, e_M, "e_M", length_scale)
     geotiffwrite(outdir, rsr.e_lon, "e_lon", length_scale)
     geotiffwrite(outdir, rsr.e_trn, "e_trn", length_scale)
     geotiffwrite(outdir, rsr.e_shr, "e_shr", length_scale)
