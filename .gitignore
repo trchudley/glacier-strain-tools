@@ -3,3 +3,4 @@ build/
 dist/
 strain_tools.egg-info/
 .ipynb_checkpoints/
+.vscode/
