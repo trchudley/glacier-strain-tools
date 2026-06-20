@@ -11,7 +11,7 @@ This tool implements convenient Python functions for calculating strain rates an
 - Calculate predicted uncertainties in strain rates.
 - Calculate deviatoric and cauchy stress from strain rates following Glen's flow law.
 
-Contact: Tom Chudley, thomas.r.chudley@durham.ac.uk
+Contact: Tom Chudley, tom.chudley@bristol.ac.uk
 
 ## Installation
 
