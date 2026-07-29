@@ -1,4 +1,4 @@
-# Command line use
+# Command Line Interface
 
 For simple testing and use on single fields, this tool can be used in the command line, although the implementation is simple and use within Python will ikely be preferred for most custom cases.
 

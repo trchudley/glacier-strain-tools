@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 
-from typing import TypeGuard, overload, Tuple
+from typing import TypeGuard, overload, Tuple, Optional
 
 
 def _all_numpy(
@@ -52,6 +52,60 @@ def _sanitise_unit_time(unit_time: str) -> str:
         )
 
 
+def _normalise_rate_unit(unit: Optional[str]) -> Optional[str]:
+    """Normalise common time-rate unit strings to one of {'a','m','d','s'}.
+
+    Supports plain-text forms (e.g. ``a^{-1}``, ``yr^-1``) and LaTeX-styled
+    forms used in this package (e.g. ``a$^{-1}$``).
+    """
+
+    if unit is None:
+        return None
+
+    u = unit.strip().lower().replace(" ", "")
+    u = u.replace("$", "").replace("{", "").replace("}", "")
+
+    annual = {
+        "a^-1",
+        "a-1",
+        "1/a",
+        "annual",
+        "annually",
+        "yr^-1",
+        "yr-1",
+        "1/yr",
+        "y^-1",
+        "y-1",
+        "1/y",
+        "year^-1",
+        "year-1",
+        "1/year",
+    }
+    monthly = {"m^-1", "m-1", "1/m", "month^-1", "month-1", "1/month"}
+    daily = {"d^-1", "d-1", "1/d", "day^-1", "day-1", "1/day"}
+    secondly = {
+        "s^-1",
+        "s-1",
+        "1/s",
+        "sec^-1",
+        "sec-1",
+        "1/sec",
+        "second^-1",
+        "second-1",
+        "1/second",
+    }
+
+    if u in annual:
+        return "a"
+    if u in monthly:
+        return "m"
+    if u in daily:
+        return "d"
+    if u in secondly:
+        return "s"
+    return None
+
+
 @overload
 def flow_direction(vx: np.ndarray, vy: np.ndarray) -> np.ndarray: ...
 
@@ -94,6 +148,8 @@ def flow_direction(
     angle = np.where(angle > 180, angle - 360, angle)
 
     angle = np.deg2rad(angle)
+
+    # NB: the above can be replaced with np.arctan2(vy, vx) to get the same result, but the above is more explicit and easier to follow.
 
     if output == "xarray":
 

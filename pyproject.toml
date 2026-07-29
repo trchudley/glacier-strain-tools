@@ -13,7 +13,7 @@ dependencies = ["rioxarray", "numpy", "numba", "matplotlib"]
 
 [[project.authors]]
 name = "Tom Chudley"
-email = "thomas.r.chudley@durham.ac.uk"
+email = "tom.chudley@bristol.ac.uk"
 
 [project.readme]
 file = "README.md"

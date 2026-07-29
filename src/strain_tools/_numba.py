@@ -437,7 +437,7 @@ def _loc_interp2(rowCoord, colCoord, Vx_array, Vy_array):
 
 
 @njit()
-def _principal_strain_rate_directions(
+def _principal_strain_rate_eigenvalues(
     e_xx: np.ndarray, e_yy: np.ndarray, e_xy: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """

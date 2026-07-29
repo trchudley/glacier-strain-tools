@@ -9,22 +9,23 @@ repo_name: "glacier-strain-tools"
 
 theme:
   name: material
-  # favicon: assets/favicon.png
-  # logo: assets/logo.png
+  language: en
+  favicon: assets/logo_64.png
+  logo: assets/logo_512.png
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: blue
-      accent: cyan
+      primary: white
+      accent: red
       toggle:
-        icon: material/brightness-7
+        icon: material/lightbulb
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: blue
-      accent: cyan
+      primary: black
+      accent: red
       toggle:
-        icon: material/brightness-4
+        icon: material/lightbulb-outline
         name: Switch to light mode
   font:
     text: Open Sans
@@ -33,9 +34,12 @@ theme:
     repo: fontawesome/brands/github
   features:
     - navigation.instant
-    - navigation.tabs
+    # - navigation.tabs
+    # - navigation.tabs.sticky
     - navigation.sections
-
+    # - navigation.expand
+    - navigation.path
+    - navigation.indexes
 copyright: >
   &copy; Tom Chudley —
   <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0</a>
@@ -50,24 +54,24 @@ extra:
       name: Tom Chudley's website
 
 nav:
-  - Home:
-    - index.md
+  - Home: index.md
+  - Getting Started:
     - installation.md
     - howtocite.md
-    - references.md
-  - User Guide:
-    - userguide/index.md
-    - Principles:
-      - Strain Rates: userguide/strainprinciples.md
-      - Stress: userguide/stressprinciples.md
-    - Python:
-      - Strain Rates: userguide/strain.ipynb
-      # - Stresses: userguide/stress.ipynb
-    - Command Line: userguide/commandline.md
+  - Principles:
+    - Strain Rates: strainprinciples.md
+    - Stress: stressprinciples.md
+  - Examples:
+    - Python: python.ipynb
+    - Command Line: commandline.md
   - API: 
     - Strain rates: api/strain.md
     - Stress: api/stress.md
     - Plotting Tools: api/plot.md
+  - Appendix:
+    - Contribution Guidelines: contributing.md
+    - Versions: versions.md
+    - References: references.md
 
 plugins:
   - mkdocs-jupyter:
@@ -86,7 +90,14 @@ markdown_extensions:
   - toc:
       permalink: "#"
   - tables
-
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+  
 extra_javascript:
   - javascripts/mathjax.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+extra_css:
+  - stylesheets/extra.css
