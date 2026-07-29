@@ -9,7 +9,7 @@ import xarray as xr
 
 from typing import overload, TypeGuard, Tuple, Optional, Literal
 
-from ._numba import _log_strain_rates, _principal_strain_rate_directions
+from ._numba import _log_strain_rates, _principal_strain_rate_eigenvalues
 from ._utils import _all_numpy, _all_xarray, _sanitise_unit_time
 
 
@@ -46,9 +46,9 @@ def logarithmic(
     ydir: int = 1,
     unit_time: Optional[str] = None,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray] | xr.Dataset:
-    """
-    Calculates the logarithmic strain rates (e_xx, e_yy, and e_xy strain
-    rates) from provided vx and vy velocity fields. Implementation of Alley et
+    r"""
+    Calculates the logarithmic strain rates ($\dot{\varepsilon}_{xx}$, $\dot{\varepsilon}_{yy}$, 
+    and $\dot{\varepsilon}_{xy}$) from provided $v_x$ and $v_y$ velocity fields. Implementation of Alley et
     al. (2018).
 
     Accepts numpy arrays or xarray DataArrays. Output type will match the input.
@@ -158,11 +158,10 @@ def nominal(
     ydir: int = 1,
     unit_time: Optional[str] = None,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray] | xr.Dataset:
-    """
-    Calculates the nominal strain rates (e_xx, e_yy, and e_xy strain
-    rates) from provided vx and vy velocity fields. Nominal strain rates
-    are calculated using the finite difference of the velocity field:
-    here, using numpy.diff().
+    r"""
+    Calculates the nominal strain rates ($\dot{\varepsilon}_{xx}$, $\dot{\varepsilon}_{yy}$, 
+    and $\dot{\varepsilon}_{xy}$) from provided $v_x$ and $v_y$ velocity fields. Nominal strain rates
+    are calculated using the finite difference of the velocity field: here, using numpy.diff().
 
     Accepts numpy arrays or xarray DataArrays. Output type will match the input.
 
@@ -252,6 +251,10 @@ def nominal(
         # dvy/dx - derivative of y-velocity in x-direction
         dvy_dx = np.diff(vy, axis=1) / pixel_size
 
+        # Normal strain rates
+        e_xx = dvx_dx
+        e_yy = dvy_dy
+
         # Shear strain rate (average of the two cross-derivatives)
         # Need to handle different shapes from diff operations
         # Trim to common dimensions
@@ -280,7 +283,7 @@ def nominal(
 
 
 @overload
-def _principal_directions(
+def _principal_eigenvalues(
     e_xx: xr.DataArray,
     e_yy: xr.DataArray,
     e_xy: xr.DataArray,
@@ -289,7 +292,7 @@ def _principal_directions(
 
 
 @overload
-def _principal_directions(
+def _principal_eigenvalues(
     e_xx: np.ndarray,
     e_yy: np.ndarray,
     e_xy: np.ndarray,
@@ -297,7 +300,7 @@ def _principal_directions(
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]: ...
 
 
-def _principal_directions(
+def _principal_eigenvalues(
     e_xx: np.ndarray | xr.DataArray,
     e_yy: np.ndarray | xr.DataArray,
     e_xy: np.ndarray | xr.DataArray,
@@ -306,9 +309,10 @@ def _principal_directions(
     Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]
     | xr.Dataset
 ):
-    """
-    Calculates the directions of principal strains from e_xx, e_yy, and e_xy strain
-    rates. Implementation of Chudley et al. (2021).
+    r"""
+    Calculates the directions of principal strains from $\dot{\varepsilon}_{xx}$, 
+    $\dot{\varepsilon}_{yy}$, and $\dot{\varepsilon}_{xy}$ strain
+    rates.
 
     Accepts numpy arrays or xarray DataArrays. Output type will match the input.
 
@@ -347,7 +351,7 @@ def _principal_directions(
             f"Input strain rate fields must be all the same type and either np.ndarray or xr.DataArray."
         )
 
-    e_1, e_1U, e_1V, e_2, e_2U, e_2V = _principal_strain_rate_directions(
+    e_1, e_1U, e_1V, e_2, e_2U, e_2V = _principal_strain_rate_eigenvalues(
         e_xx, e_yy, e_xy
     )
 
@@ -411,10 +415,17 @@ def _principal_magnitudes(
     e_xy: np.ndarray | xr.DataArray,
     unit_time: Optional[str] = None,
 ) -> Tuple[np.ndarray, np.ndarray] | xr.Dataset:
-    """
-    Given e_xx, e_yy, and e_xy, return principal strain rates following
-    methods in Nye (1959) and Harper et al. (1998) - i.e. not using
-    eigenvectors. Quicker to compute, only returns magnitude values.
+    r"""
+    Given $\dot{\varepsilon}_{xx}$, $\dot{\varepsilon}_{yy}$, and $\dot{\varepsilon}_{xy}$, 
+    return principal strain rates following the method of Nye (1959):
+
+    $$
+    \dot{\varepsilon}_1, \dot{\varepsilon}_2 = \frac{1}{2} (\dot{\varepsilon}_{xx} + 
+    \dot{\varepsilon}_{yy}) \pm \sqrt{ \frac{1}{4} (\dot{\varepsilon}_{xx} - 
+    \dot{\varepsilon}_{yy})^2 + \dot{\varepsilon}_{xy}^2 }
+    $$
+    
+    Quicker to compute, only returns magnitude values.
 
     Accepts numpy arrays or xarray DataArrays. Output type will match the input.
 
@@ -498,19 +509,19 @@ def principal(
     e_yy: np.ndarray | xr.DataArray,
     e_xy: np.ndarray | xr.DataArray,
     unit_time: Optional[str] = None,
-    output: Literal["directions", "magnitudes"] = "directions",
+    output: Literal["eigenvectors", "magnitudes"] = "eigenvectors",
 ) -> (
     Tuple[np.ndarray, np.ndarray]
     | Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]
     | xr.Dataset
 ):
-    """
-    Calculates the first and second principal strain rates from e_xx, e_yy, and
-    e_xy strain rates.
+    r"""
+    Calculates the first and second principal strain rates from $\dot{\varepsilon}_{xx}$, 
+    $\dot{\varepsilon}_{yy}$, and $\dot{\varepsilon}_{xy}$ strain rates.
 
     Accepts numpy arrays or xarray DataArrays. Output type will match the input.
 
-    If `output = "directions"`, principal strain directions are calculated as
+    If `output = "eigenvectors"`, principal strain directions are calculated as
     eigenvectors and the directional strain rates are returned as e_1, e_1U,
     e_1V, e_2, e_2U, e_2V. If `output = "magnitudes"`, principal strain rate
     magnitudes are calculated following methods in Nye (1959) and Harper et al.
@@ -523,13 +534,13 @@ def principal(
         e_xy (np.ndarray | xr.DataArray): Array of strain rate in xy direction
         unit_time (str, optional): Set to apply a time unit to the output strain
             rates. Set to 'a' for annual or 'd' for daily. Defaults to None.
-        output (str, optional): Set to "directions" or "magnitudes". Defaults to
-            "directions".
+        output (str, optional): Set to "eigenvectors" or "magnitudes". Defaults to
+            "eigenvectors".
 
     Returns:
         Tuple[np.ndarray, np.ndarray] |  Tuple[np.ndarray, np.ndarray, np.ndarray,
             np.ndarray, np.ndarray, np.ndarray]| xr.Dataset: Returns the first and
-            second principal strain rates. If `output = "directions"`, returns the e_1,
+            second principal strain rates. If `output = "eigenvectors"`, returns the e_1,
             e_1U, e_1V, e_2, e_2U, and e_2V first and second principal strain rates.
             *U and *V denote the U and V components of the principal strain rate.
             Returns either tuple of six numpy arrays or an xarray Dataset, depending
@@ -538,10 +549,269 @@ def principal(
             Dataset, depending on the input type.
     """
 
-    if output == "directions":
-        return _principal_directions(e_xx, e_yy, e_xy, unit_time=unit_time)
+    if output == "eigenvectors":
+        return _principal_eigenvalues(e_xx, e_yy, e_xy, unit_time=unit_time)
     elif output == "magnitudes":
         return _principal_magnitudes(e_xx, e_yy, e_xy, unit_time=unit_time)
+
+
+@overload
+def longitudinal(
+    e_xx: np.ndarray,
+    e_yy: np.ndarray,
+    e_xy: np.ndarray,
+    angle: np.ndarray,
+    unit_time: Optional[str] = None,
+) -> np.ndarray: ...
+
+
+@overload
+def longitudinal(
+    e_xx: xr.DataArray,
+    e_yy: xr.DataArray,
+    e_xy: xr.DataArray,
+    angle: xr.DataArray,
+    unit_time: Optional[str] = None,
+) -> xr.DataArray: ...
+
+
+def longitudinal(
+    e_xx: np.ndarray | xr.DataArray,
+    e_yy: np.ndarray | xr.DataArray,
+    e_xy: np.ndarray | xr.DataArray,
+    angle: np.ndarray | xr.DataArray,
+    unit_time: Optional[str] = None,
+) -> np.ndarray | xr.DataArray:
+    r"""
+    Given $\dot{\varepsilon}_{xx}$, $\dot{\varepsilon}_{yy}$, and
+    $\dot{\varepsilon}_{xy}$, return longitudinal (along-flow) strain
+    rate following Bindschadler et al. (1996):
+
+    $$
+    \dot{\varepsilon}_{lon} = \dot{\varepsilon}_{xx} \cos^2 \theta +
+    2 \dot{\varepsilon}_{xy} \cos \theta \sin \theta +
+    \dot{\varepsilon}_{yy} \sin^2 \theta
+    $$
+
+    Accepts numpy arrays or xarray DataArrays. Output type will match the input.
+
+    Args:
+        e_xx (np.ndarray | xr.DataArray): Array of strain rate in xx direction
+        e_yy (np.ndarray | xr.DataArray): Array of strain rate in yy direction
+        e_xy (np.ndarray | xr.DataArray): Array of strain rate in xy direction
+        angle (np.ndarray | xr.DataArray): Array of flow direction in radians
+        unit_time (str, optional): Set to apply a time unit to the output strain
+            rates. Set to 'a' for annual or 'd' for daily. Defaults to None.
+
+    Returns:
+        np.ndarray | xr.DataArray: Longitudinal strain rate. Returns either a
+            numpy array or an xarray DataArray, depending on the input.
+    """
+
+    # Sanitise inputs
+    if unit_time is not None:
+        unit_time = _sanitise_unit_time(unit_time)
+
+    # Check if all inputs are (i) the same and (ii) either ndarray or xarray
+    if _all_xarray(e_xx, e_yy, e_xy, angle):
+        output = "xarray"
+    elif _all_numpy(e_xx, e_yy, e_xy, angle):
+        output = "numpy"
+    else:
+        raise ValueError(
+            f"Input fields must be all the same type and either np.ndarray or xr.DataArray."
+        )
+
+    # Calculate longitudinal strain rate (Bindschadler et al. 1996)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        e_lon = (
+            (e_xx * np.cos(angle) ** 2)
+            + (2 * e_xy * np.cos(angle) * np.sin(angle))
+            + (e_yy * np.sin(angle) ** 2)
+        )
+
+    if output == "xarray":
+        e_lon = e_lon.rename("e_lon")
+        e_lon.attrs["long_name"] = "Longitudinal Strain Rate"
+        if unit_time is not None:
+            e_lon.attrs["units"] = f"{unit_time}$^{{-1}}$"
+        elif "units" in e_xx.attrs:
+            e_lon.attrs["units"] = e_xx.attrs["units"]
+        return e_lon
+    else:
+        return e_lon
+
+
+@overload
+def transverse(
+    e_xx: np.ndarray,
+    e_yy: np.ndarray,
+    e_xy: np.ndarray,
+    angle: np.ndarray,
+    unit_time: Optional[str] = None,
+) -> np.ndarray: ...
+
+
+@overload
+def transverse(
+    e_xx: xr.DataArray,
+    e_yy: xr.DataArray,
+    e_xy: xr.DataArray,
+    angle: xr.DataArray,
+    unit_time: Optional[str] = None,
+) -> xr.DataArray: ...
+
+
+def transverse(
+    e_xx: np.ndarray | xr.DataArray,
+    e_yy: np.ndarray | xr.DataArray,
+    e_xy: np.ndarray | xr.DataArray,
+    angle: np.ndarray | xr.DataArray,
+    unit_time: Optional[str] = None,
+) -> np.ndarray | xr.DataArray:
+    r"""
+    Given $\dot{\varepsilon}_{xx}$, $\dot{\varepsilon}_{yy}$, and
+    $\dot{\varepsilon}_{xy}$, return transverse (across-flow) strain
+    rate following Bindschadler et al. (1996):
+
+    $$
+    \dot{\varepsilon}_{trn} = \dot{\varepsilon}_{xx} \sin^2 \theta -
+    2 \dot{\varepsilon}_{xy} \cos \theta \sin \theta +
+    \dot{\varepsilon}_{yy} \cos^2 \theta
+    $$
+
+    Accepts numpy arrays or xarray DataArrays. Output type will match the input.
+
+    Args:
+        e_xx (np.ndarray | xr.DataArray): Array of strain rate in xx direction
+        e_yy (np.ndarray | xr.DataArray): Array of strain rate in yy direction
+        e_xy (np.ndarray | xr.DataArray): Array of strain rate in xy direction
+        angle (np.ndarray | xr.DataArray): Array of flow direction in radians
+        unit_time (str, optional): Set to apply a time unit to the output strain
+            rates. Set to 'a' for annual or 'd' for daily. Defaults to None.
+
+    Returns:
+        np.ndarray | xr.DataArray: Transverse strain rate. Returns either a
+            numpy array or an xarray DataArray, depending on the input.
+    """
+
+    # Sanitise inputs
+    if unit_time is not None:
+        unit_time = _sanitise_unit_time(unit_time)
+
+    # Check if all inputs are (i) the same and (ii) either ndarray or xarray
+    if _all_xarray(e_xx, e_yy, e_xy, angle):
+        output = "xarray"
+    elif _all_numpy(e_xx, e_yy, e_xy, angle):
+        output = "numpy"
+    else:
+        raise ValueError(
+            f"Input fields must be all the same type and either np.ndarray or xr.DataArray."
+        )
+
+    # Calculate transverse strain rate (Bindschadler et al. 1996)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        e_trn = (
+            (e_xx * np.sin(angle) ** 2)
+            - (2 * e_xy * np.cos(angle) * np.sin(angle))
+            + (e_yy * np.cos(angle) ** 2)
+        )
+
+    if output == "xarray":
+        e_trn = e_trn.rename("e_trn")
+        e_trn.attrs["long_name"] = "Transverse Strain Rate"
+        if unit_time is not None:
+            e_trn.attrs["units"] = f"{unit_time}$^{{-1}}$"
+        elif "units" in e_xx.attrs:
+            e_trn.attrs["units"] = e_xx.attrs["units"]
+        return e_trn
+    else:
+        return e_trn
+
+
+@overload
+def shear(
+    e_xx: np.ndarray,
+    e_yy: np.ndarray,
+    e_xy: np.ndarray,
+    angle: np.ndarray,
+    unit_time: Optional[str] = None,
+) -> np.ndarray: ...
+
+
+@overload
+def shear(
+    e_xx: xr.DataArray,
+    e_yy: xr.DataArray,
+    e_xy: xr.DataArray,
+    angle: xr.DataArray,
+    unit_time: Optional[str] = None,
+) -> xr.DataArray: ...
+
+
+def shear(
+    e_xx: np.ndarray | xr.DataArray,
+    e_yy: np.ndarray | xr.DataArray,
+    e_xy: np.ndarray | xr.DataArray,
+    angle: np.ndarray | xr.DataArray,
+    unit_time: Optional[str] = None,
+) -> np.ndarray | xr.DataArray:
+    r"""
+    Given $\dot{\varepsilon}_{xx}$, $\dot{\varepsilon}_{yy}$, and
+    $\dot{\varepsilon}_{xy}$, return shear strain rate in the flow-aligned
+    coordinate system following Bindschadler et al. (1996):
+
+    $$
+    \dot{\varepsilon}_{shr} = (\dot{\varepsilon}_{yy} -
+    \dot{\varepsilon}_{xx}) \cos \theta \sin \theta +
+    \dot{\varepsilon}_{xy} (\cos^2 \theta - \sin^2 \theta)
+    $$
+
+    Accepts numpy arrays or xarray DataArrays. Output type will match the input.
+
+    Args:
+        e_xx (np.ndarray | xr.DataArray): Array of strain rate in xx direction
+        e_yy (np.ndarray | xr.DataArray): Array of strain rate in yy direction
+        e_xy (np.ndarray | xr.DataArray): Array of strain rate in xy direction
+        angle (np.ndarray | xr.DataArray): Array of flow direction in radians
+        unit_time (str, optional): Set to apply a time unit to the output strain
+            rates. Set to 'a' for annual or 'd' for daily. Defaults to None.
+
+    Returns:
+        np.ndarray | xr.DataArray: Shear strain rate. Returns either a numpy
+            array or an xarray DataArray, depending on the input.
+    """
+
+    # Sanitise inputs
+    if unit_time is not None:
+        unit_time = _sanitise_unit_time(unit_time)
+
+    # Check if all inputs are (i) the same and (ii) either ndarray or xarray
+    if _all_xarray(e_xx, e_yy, e_xy, angle):
+        output = "xarray"
+    elif _all_numpy(e_xx, e_yy, e_xy, angle):
+        output = "numpy"
+    else:
+        raise ValueError(
+            f"Input fields must be all the same type and either np.ndarray or xr.DataArray."
+        )
+
+    # Calculate shear strain rate (Bindschadler et al. 1996)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        e_shr = ((e_yy - e_xx) * np.cos(angle) * np.sin(angle)) + (
+            e_xy * (np.cos(angle) ** 2 - np.sin(angle) ** 2)
+        )
+
+    if output == "xarray":
+        e_shr = e_shr.rename("e_shr")
+        e_shr.attrs["long_name"] = "Shear Strain Rate"
+        if unit_time is not None:
+            e_shr.attrs["units"] = f"{unit_time}$^{{-1}}$"
+        elif "units" in e_xx.attrs:
+            e_shr.attrs["units"] = e_xx.attrs["units"]
+        return e_shr
+    else:
+        return e_shr
 
 
 @overload
@@ -571,58 +841,36 @@ def rotated(
     angle: np.ndarray | xr.DataArray,
     unit_time: Optional[str] = None,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray] | xr.Dataset:
-    """
-    Given e_xx, e_yy, and e_xy, return various rotated strain rates
-    following Bindschadler et al. (1996).
+    r"""
+    Wrapper function returning all rotated strain-rate components (longitudinal 
+    ($\dot{\varepsilon}_{lon}$), transverse ($\dot{\varepsilon}_{trn}$),
+    and shear ($\dot{\varepsilon}_{shr}$)) as a single xarray Dataset or tuple of
+    numpy arrays.
+
+    Recommend using `longitudinal`, `transverse`, and `shear` directly when only
+    one component is required.
 
     Accepts numpy arrays or xarray DataArrays. Output type will match the input.
 
-    Parameters:
+    Args:
         e_xx (np.ndarray | xr.DataArray): Array of strain rate in xx direction
-        e_xx (np.ndarray | xr.DataArray): Array of strain rate in yy direction
+        e_yy (np.ndarray | xr.DataArray): Array of strain rate in yy direction
         e_xy (np.ndarray | xr.DataArray): Array of strain rate in xy direction
-        angle (np.ndarray | xr.DataArray): array of flow direction in radians
+        angle (np.ndarray | xr.DataArray): Array of flow direction in radians
         unit_time (str, optional): Set to apply a time unit to the output strain
             rates. Set to 'a' for annual or 'd' for daily. Defaults to None.
 
     Returns:
-        Tuple[np.ndarray, np.ndarray, np.ndarray] | xr.Dataset: Longitudinal, transverse
-            and shear strain rates. Returns either a numpy array or an xarray Dataset,
-            depending on the input.
+        Tuple[np.ndarray, np.ndarray, np.ndarray] | xr.Dataset: Longitudinal,
+            transverse, and shear strain rates. Returns either a tuple of three
+            numpy arrays or an xarray Dataset, depending on the input.
     """
 
-    # Sanitise inputs
-    if unit_time is not None:
-        unit_time = _sanitise_unit_time(unit_time)
+    e_lon = longitudinal(e_xx, e_yy, e_xy, angle, unit_time=unit_time)
+    e_trn = transverse(e_xx, e_yy, e_xy, angle, unit_time=unit_time)
+    e_shr = shear(e_xx, e_yy, e_xy, angle, unit_time=unit_time)
 
-    # Check if all inputs are (i) the same and (ii) either ndarray or xarray
-    if _all_xarray(e_xx, e_yy, e_xy, angle):
-        output = "xarray"
-    elif _all_numpy(e_xx, e_yy, e_xy, angle):
-        output = "numpy"
-    else:
-        raise ValueError(
-            f"Input fields must be all the same type and either np.ndarray or xr.DataArray."
-        )
-
-    # Calculate longitudinal and transverse strain rate (Bindschadler et al. 1996)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        e_lon = (
-            (e_xx * np.cos(angle) ** 2)
-            + (2 * e_xy * np.cos(angle) * np.sin(angle))
-            + (e_yy * np.sin(angle) ** 2)
-        )
-        e_trn = (
-            (e_xx * np.sin(angle) ** 2)
-            - (2 * e_xy * np.cos(angle) * np.sin(angle))
-            + (e_yy * np.cos(angle) ** 2)
-        )
-        e_shr = ((e_yy - e_xx) * np.cos(angle) * np.sin(angle)) + (
-            e_xy * (np.cos(angle) ** 2 - np.sin(angle) ** 2)
-        )
-
-    # Return based on input type
-    if output == "xarray":
+    if isinstance(e_lon, xr.DataArray):
         xds = xr.Dataset(
             data_vars={
                 "e_lon": e_lon,
@@ -630,17 +878,6 @@ def rotated(
                 "e_shr": e_shr,
             },
         )
-        xds.e_lon.attrs["long_name"] = "Longitudinal Strain Rate"
-        xds.e_trn.attrs["long_name"] = "Transverse Strain Rate"
-        xds.e_shr.attrs["long_name"] = "Shear Strain Rate"
-
-        if unit_time is not None:
-            for var in xds.data_vars:
-                xds[var].attrs["units"] = f"{unit_time}$^{{-1}}$"
-        elif "units" in e_xx.attrs:
-            for var in xds.data_vars:
-                xds[var].attrs["units"] = e_xx.attrs["units"]
-
         return xds
     else:
         return e_lon, e_trn, e_shr
@@ -669,18 +906,30 @@ def effective(
     e_yy: np.ndarray | xr.DataArray,
     e_xy: np.ndarray | xr.DataArray,
     unit_time: Optional[str] = None,
+    form: Literal["full", "planar"] = "full",
 ) -> np.ndarray | xr.DataArray:
     r"""
-    Given e_xx, e_yy, and e_xy, return effective strain rate. Calculated from
-    the deviatoric strain-rate tensor as
+    Given $\dot{\varepsilon}_{xx}$, $\dot{\varepsilon}_{yy}$, and 
+    $\dot{\varepsilon}_{xy}$, return effective strain rate. 
 
-    $ \sqrt{ \frac{1}{2} \left( e_{xx}^2 + e_{yy}^2 + e_{xy}^2 \right) }, $
+    Default form is "full" for 3D effective strain rate, which is calculated as
 
-    following Cuffey & Paterson (2010, p.59).
+    $$
+    \dot{\varepsilon}_{E} = \sqrt{ \frac{1}{2} [ \dot{\varepsilon}_{xx}^2 + 
+    \dot{\varepsilon}_{yy}^2 + (-\dot{\varepsilon}_{xx} - \dot{\varepsilon}_{yy})^2 ] + \dot{\varepsilon}_{xy}^2 }.
+    $$
+
+    Alternative form is "planar" for 2D effective strain rate, which is calculated as
+
+    $$
+    \dot{\varepsilon}_{E} = \sqrt{ \frac{1}{2} \left( \dot{\varepsilon}_{xx}^2 + \dot{\varepsilon}_{yy}^2 \right)+ \dot{\varepsilon}_{xy}^2 },
+    $$
+
+    ignoring the vertical strain rate comopnent.
 
     Accepts numpy arrays or xarray DataArrays. Output type will match the input.
 
-    Parameters:
+    Args:
         e_xx (np.ndarray | xr.DataArray): Array of strain rate in xx direction
         e_yy (np.ndarray | xr.DataArray): Array of strain rate in yy direction
         e_xy (np.ndarray | xr.DataArray): Array of strain rate in xy direction
@@ -705,9 +954,16 @@ def effective(
         raise ValueError(
             f"Input fields must be all the same type and either np.ndarray or xr.DataArray."
         )
+    
+    if form == "full":
+        e_E = np.sqrt(
+            0.5 * (e_xx**2 + e_yy**2 + (-e_xx - e_yy) ** 2) + e_xy**2
+        )
+    elif form == "planar":
+        e_E = np.sqrt(0.5 * (e_xx**2 + e_yy**2) + e_xy**2)
+    else:
+        raise ValueError(f"Invalid form '{form}'. Must be 'full' or 'planar'.")
 
-    # Calculate effective strain rate (Cuffey & Paterson p.59)
-    e_E = np.sqrt(0.5 * (e_xx**2 + e_yy**2) + e_xy**2)
 
     if output == "xarray":
         e_E = e_E.rename("e_E")
@@ -716,7 +972,6 @@ def effective(
             e_E.attrs["units"] = f"{unit_time}$^{{-1}}$"
         elif "units" in e_xx.attrs:
             e_E.attrs["units"] = e_xx.attrs["units"]
-
         return e_E
     else:
         return e_E
@@ -749,10 +1004,12 @@ def uncertainty(
     r"""
     Calculate strain rate uncertainty following Poinar and Andrews (2021, eq. 4):
 
-    $\delta_{\dot{\epsilon}} = \frac{1}{\Delta x} \sqrt{(\delta u)^2 + (\delta v)^2}$
+    $$
+    \delta_{\dot{\epsilon}} = \frac{1}{\Delta x} \sqrt{(\delta u)^2 + (\delta v)^2}
+    $$
 
-    Where Δx is the baseline distance between observation points (i.e. the lengthscale),
-    and δu and δv are the velocity uncertainties in the x and y directions.
+    Where $\Delta x$ is the baseline distance between observation points (i.e. the length scale),
+    and $\delta u$ and $\delta v$ are the velocity uncertainties in the $x$ and $y$ directions.
 
     Args:
         ve_x (np.ndarray | xr.DataArray): Velocity uncertainty in x direction.

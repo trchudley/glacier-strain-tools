@@ -1,5 +1,5 @@
 """
-Plot strain and stress crosses.
+Plot strain crosses in the style of Colgan _et al._ (2016).
 """
 
 import matplotlib
@@ -29,30 +29,21 @@ def strain_quiver(
     of the second and first principal strain rates in the style of Colgan _et
     al._ (2016; https://doi.org/10.1002/2015RG000504).
 
-    :param ax: Matplotlib axis to plot on
-    :type ax: matplotlib.axes._axes.Axes
-    :param principal_strain_rates: Principal strain rates xarray Dataset
-    :type principal_strain_rates: xarray.Dataset
-    :param show_every: Set to plot every Nth quiver. Default is 10.
-    :type show_every: int, optional
-    :param arrowscale: Scale of arrows. Default is 10.
-    :type arrowscale: float, optional
-    :param arrowwidth: Width of arrows. Default is 0.003.
-    :type arrowwidth: float, optional
-    :param cmap: Colormap to use. Default is 'coolwarm'.
-    :type cmap: str, optional
-    :param unit: Unit of arrows. Default is 'a'.
-    :type unit: str, optional
-    :param key: Plot quiver key. Default is True.
-    :type key: bool, optional
-    :param keypos_x: X position of quiver key. Default is 0.075.
-    :type keypos_x: float, optional
-    :param keypos_y: Y position of quiver key. Default is 0.9.
-    :type keypos_y: float, optional
-    :param keycolor: Colour of quiver key. Default is 'k'.
-    :type keycolor: str, optional
+    Args:
+        ax (matplotlib.axes._axes.Axes): Matplotlib axis to plot on
+        principal_strain_rates (xarray.Dataset): Principal strain rates xarray Dataset
+        show_every (int, optional): Set to plot every Nth quiver. Default is 10.
+        arrowscale (float, optional): Scale of arrows. Default is 10.
+        arrowwidth (float, optional): Width of arrows. Default is 0.003.
+        cmap (str, optional): Colormap to use. Default is 'coolwarm'.
+        unit (Literal["a", "m", "d", "s"], optional): Unit of arrows. Default is 'a'.
+        key (bool, optional): Plot quiver key. Default is True.
+        keypos_x (float, optional): X position of quiver key. Default is 0.075.
+        keypos_y (float, optional): Y position of quiver key. Default is 0.9.
+        keycolor (str, optional): Colour of quiver key. Default is 'k'.
 
-    :return: None
+    Returns:
+        None
     """
 
     # Sanity check data

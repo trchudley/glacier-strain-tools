@@ -1,0 +1,103 @@
+site_name: Glacier Strain Tools
+site_description: Python tools to derive glacier strain rates
+site_url: https://trchudley.github.io/glacier-strain-tools/
+repo_url: https://github.com/trchudley/glacier-strain-tools/
+repo_name: "glacier-strain-tools"
+
+# Activate this when building the docs locally to avoid broken links in the local build
+# use_directory_urls: false
+
+theme:
+  name: material
+  language: en
+  favicon: assets/logo_64.png
+  logo: assets/logo_512.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: red
+      toggle:
+        icon: material/lightbulb
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: red
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to light mode
+  font:
+    text: Open Sans
+    code: Open Sans Mono
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.instant
+    # - navigation.tabs
+    # - navigation.tabs.sticky
+    - navigation.sections
+    # - navigation.expand
+    - navigation.path
+    - navigation.indexes
+copyright: >
+  &copy; Tom Chudley —
+  <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0</a>
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/trchudley/
+      name: Tom Chudley on GitHub
+    - icon: fontawesome/solid/globe
+      link: https://trchudley.github.io
+      name: Tom Chudley's website
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - installation.md
+    - howtocite.md
+  - Principles:
+    - Strain Rates: strainprinciples.md
+    - Stress: stressprinciples.md
+  - Examples:
+    - Python: python.ipynb
+    - Command Line: commandline.md
+  - API: 
+    - Strain rates: api/strain.md
+    - Stress: api/stress.md
+    - Plotting Tools: api/plot.md
+  - Appendix:
+    - Contribution Guidelines: contributing.md
+    - Versions: versions.md
+    - References: references.md
+
+plugins:
+  - mkdocs-jupyter:
+      execute: false
+      include_source: True
+      custom_mathjax_url: "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML-full,Safe"
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+  # - privacy
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+  - toc:
+      permalink: "#"
+  - tables
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+  
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+extra_css:
+  - stylesheets/extra.css
