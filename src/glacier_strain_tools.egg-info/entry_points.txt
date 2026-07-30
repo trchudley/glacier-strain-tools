@@ -1,2 +1,0 @@
-[console_scripts]
-strain_tools = strain_tools._cli:cli

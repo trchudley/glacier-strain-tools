@@ -1,4 +1,0 @@
-rioxarray
-numpy
-numba
-matplotlib
