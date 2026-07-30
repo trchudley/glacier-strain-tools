@@ -1,7 +1,23 @@
 import numpy as np
 import xarray as xr
 
-from typing import TypeGuard, overload, Tuple, Optional
+from typing import Dict, Optional, Tuple, TypeGuard, overload
+
+
+# Keep a narrow whitelist of geospatial attrs that can be important for
+# downstream georeferencing while dropping source-provenance clutter.
+_GEOSPATIAL_ATTR_KEYS = {
+    "grid_mapping",
+    "spatial_ref",
+    "crs",
+    "epsg",
+    "epsg_code",
+    "projection",
+    "proj4",
+    "proj4text",
+    "GeoTransform",
+    "transform",
+}
 
 
 def _all_numpy(
@@ -106,6 +122,49 @@ def _normalise_rate_unit(unit: Optional[str]) -> Optional[str]:
     return None
 
 
+def _extract_geospatial_attrs(*arrays: xr.DataArray) -> Dict[str, object]:
+    """Collect a minimal set of geospatial attrs from xarray inputs."""
+
+    attrs: Dict[str, object] = {}
+    for arr in arrays:
+        for key in _GEOSPATIAL_ATTR_KEYS:
+            if key in arr.attrs and key not in attrs:
+                attrs[key] = arr.attrs[key]
+    return attrs
+
+
+def _strip_nonessential_attrs(
+    xda: xr.DataArray,
+    *,
+    geospatial_attrs: Optional[Dict[str, object]] = None,
+    long_name: Optional[str] = None,
+    units: Optional[str] = None,
+) -> xr.DataArray:
+    """Return a DataArray with only desired semantic and geospatial attrs."""
+
+    clean_attrs: Dict[str, object] = dict(geospatial_attrs or {})
+    if long_name is not None:
+        clean_attrs["long_name"] = long_name
+    if units is not None:
+        clean_attrs["units"] = units
+    xda.attrs = clean_attrs
+    return xda
+
+
+def _strip_nonessential_dataset_attrs(
+    xds: xr.Dataset,
+    *,
+    geospatial_attrs: Optional[Dict[str, object]] = None,
+) -> xr.Dataset:
+    """Keep only essential geospatial attrs on a Dataset and data vars."""
+
+    clean_geo = dict(geospatial_attrs or {})
+    xds.attrs = clean_geo
+    for var_name in xds.data_vars:
+        xds[var_name].attrs = dict(clean_geo)
+    return xds
+
+
 @overload
 def flow_direction(vx: np.ndarray, vy: np.ndarray) -> np.ndarray: ...
 
@@ -153,11 +212,16 @@ def flow_direction(
 
     if output == "xarray":
 
+        geospatial_attrs = _extract_geospatial_attrs(vx, vy)
         angle = vx * 0 + angle
 
         angle = angle.rename("angle")
-        angle.attrs["long_name"] = "Flow Direction"
-        angle.attrs["units"] = "radians"
+        angle = _strip_nonessential_attrs(
+            angle,
+            geospatial_attrs=geospatial_attrs,
+            long_name="Flow Direction",
+            units="radians",
+        )
 
         return angle
 

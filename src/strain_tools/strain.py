@@ -10,7 +10,13 @@ import xarray as xr
 from typing import overload, TypeGuard, Tuple, Optional, Literal
 
 from ._numba import _log_strain_rates, _principal_strain_rate_eigenvalues
-from ._utils import _all_numpy, _all_xarray, _sanitise_unit_time
+from ._utils import (
+    _all_numpy,
+    _all_xarray,
+    _extract_geospatial_attrs,
+    _sanitise_unit_time,
+    _strip_nonessential_dataset_attrs,
+)
 
 
 @overload
@@ -83,6 +89,7 @@ def logarithmic(
         unit_time = _sanitise_unit_time(unit_time)
 
     if _all_xarray(vx, vy):
+        geospatial_attrs = _extract_geospatial_attrs(vx, vy)
 
         # Check that ydir matches the xarray coordinate values
         if vx.y.values[1] - vx.y.values[0] < 0:
@@ -119,6 +126,9 @@ def logarithmic(
                 "e_yy": dummy_xds + e_yy,
                 "e_xy": dummy_xds + e_xy,
             }
+        )
+        xds = _strip_nonessential_dataset_attrs(
+            xds, geospatial_attrs=geospatial_attrs
         )
         xds.data_vars["e_xx"].attrs["long_name"] = "Normal Strain Rate ($xx$)"
         xds.data_vars["e_yy"].attrs["long_name"] = "Normal Strain Rate ($yy$)"
@@ -187,6 +197,7 @@ def nominal(
         unit_time = _sanitise_unit_time(unit_time)
 
     if _all_xarray(vx, vy):
+        geospatial_attrs = _extract_geospatial_attrs(vx, vy)
 
         # Check that ydir matches the xarray coordinate values
         if vx.y.values[1] - vx.y.values[0] < 0:
@@ -270,6 +281,9 @@ def nominal(
                 "e_yy": dummy_xds + e_yy,
                 "e_xy": dummy_xds + e_xy,
             }
+        )
+        xds = _strip_nonessential_dataset_attrs(
+            xds, geospatial_attrs=geospatial_attrs
         )
         xds.data_vars["e_xx"].attrs["long_name"] = "Normal Strain Rate ($xx$)"
         xds.data_vars["e_yy"].attrs["long_name"] = "Normal Strain Rate ($yy$)"
