@@ -118,39 +118,33 @@ where \(v_{ix}\) and \(v_{iy}\) are the x and y components of the eigenvector as
 
 #### Eigenvalues
 
-Alternatively we can follow Nye (1959) to calculate the eigenvalues. This is slightly more computationally efficient, but does not return the vector components (so cannot be used for plotting, etc.)
+Alternatively we can follow Nye (1959) to calculate the eigenvalues. This is slightly more computationally efficient, but does not return the vector components.
 
 \begin{equation}
 \dot{\varepsilon}_1, \dot{\varepsilon}_2 = \frac{1}{2} (\dot{\varepsilon}_{xx} + \dot{\varepsilon}_{yy}) \pm \sqrt{ \frac{1}{4} (\dot{\varepsilon}_{xx} - \dot{\varepsilon}_{yy})^2 + \dot{\varepsilon}_{xy}^2 }
 \end{equation}
 
-<!-- 
-The orientation of the maximum principal stress relative to the $x$-axis can be calculated as follows:
+Instead, we can derive the vector components by calculating the orientation of the maximum principal strain rate relative to the $x$-axis, as follows:
 
 \begin{equation}
 \theta_1 = \frac{1}{2} \tan^{-1} \left( \frac{2 \dot{\varepsilon}_{xy}}{\dot{\varepsilon}_{xx} - \dot{\varepsilon}_{yy}} \right)
 \end{equation}
 
-The orientation of the minimum principal strain rate is $\theta_1$ rotated by $90^\circ$ ($\pi/2$ radians):
+The orientation of the minimum principal strain rate is $\theta_1$ rotated by $90^\circ$ ($\theta_2 = \theta_1 + \frac{\pi}{2}$)
 
-\begin{equation}
-\theta_2 = \theta_1 + \frac{\pi}{2}
-\end{equation} 
-
-From the eigenvalues and the orientations, you could then calculate the eigenvectors as follows:
+<!-- From the eigenvalues and the orientations, you could then calculate the eigenvectors as follows:
 
 \begin{equation}
 \textbf{v}_1
-\end{equation}
+\end{equation} -->
 
--->
 
 ### Longitudinal, Transverse, and Shear Strain Rates
 
 Rotating the strain rates to orient the components relative to the local flow direction can be calculated, given the local flow direction $\theta$ measured anti-clockwise from the positive $x$ axis:
 
 \begin{equation}
-\theta = \tan^{-1}\left( \frac{v}{u} \right)
+\theta = \mathrm{arctan2} \left( v,u \right)
 \end{equation}
 
 The longitudinal ($\dot{\varepsilon}_{lon}$, along-flow), transverse ($\dot{\varepsilon}_{trn}$ perpendicular to flow), and shear ($\dot{\varepsilon}_{shr}$) strain rates can be calculated following Bindschadler _et al._ (1996) as follows:

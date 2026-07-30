@@ -19,6 +19,107 @@ from ._utils import (
 )
 
 
+def _principal_vector_dataset(
+    template: xr.DataArray,
+    e_1: np.ndarray | xr.DataArray,
+    e_1U: np.ndarray | xr.DataArray,
+    e_1V: np.ndarray | xr.DataArray,
+    e_2: np.ndarray | xr.DataArray,
+    e_2U: np.ndarray | xr.DataArray,
+    e_2V: np.ndarray | xr.DataArray,
+    unit_time: Optional[str] = None,
+) -> xr.Dataset:
+    """Build a principal-strain Dataset with consistent labels and units."""
+
+    dummy_xds = template * 0
+    if "units" in template.attrs:
+        dummy_xds.attrs["units"] = template.attrs["units"]
+
+    xds = xr.Dataset(
+        data_vars={
+            "e_1": dummy_xds + e_1,
+            "e_1U": dummy_xds + e_1U,
+            "e_1V": dummy_xds + e_1V,
+            "e_2": dummy_xds + e_2,
+            "e_2U": dummy_xds + e_2U,
+            "e_2V": dummy_xds + e_2V,
+        }
+    )
+    xds.data_vars["e_1"].attrs["long_name"] = "First Principal Strain Rate"
+    xds.data_vars["e_1U"].attrs["long_name"] = "U Component of First Principal Strain Rate"
+    xds.data_vars["e_1V"].attrs["long_name"] = "V Component of First Principal Strain Rate"
+    xds.data_vars["e_2"].attrs["long_name"] = "Second Principal Strain Rate"
+    xds.data_vars["e_2U"].attrs["long_name"] = "U Component of Second Principal Strain Rate"
+    xds.data_vars["e_2V"].attrs["long_name"] = "V Component of Second Principal Strain Rate"
+
+    if unit_time is not None:
+        for var in xds.data_vars:
+            xds[var].attrs["units"] = f"{unit_time}$^{{-1}}$"
+    elif "units" in dummy_xds.attrs:
+        for var in xds.data_vars:
+            xds[var].attrs["units"] = dummy_xds.attrs["units"]
+
+    return xds
+
+
+def _principal_magnitude_dataset(
+    template: xr.DataArray,
+    e_1: np.ndarray | xr.DataArray,
+    e_2: np.ndarray | xr.DataArray,
+    unit_time: Optional[str] = None,
+) -> xr.Dataset:
+    """Build a principal-magnitude Dataset with consistent labels and units."""
+
+    dummy_xds = template * 0
+    if "units" in template.attrs:
+        dummy_xds.attrs["units"] = template.attrs["units"]
+
+    xds = xr.Dataset(
+        data_vars={
+            "e_1": dummy_xds + e_1,
+            "e_2": dummy_xds + e_2,
+        }
+    )
+    xds.data_vars["e_1"].attrs["long_name"] = "First Principal Strain Rate"
+    xds.data_vars["e_2"].attrs["long_name"] = "Second Principal Strain Rate"
+
+    if unit_time is not None:
+        for var in xds.data_vars:
+            xds[var].attrs["units"] = f"{unit_time}$^{{-1}}$"
+    elif "units" in dummy_xds.attrs:
+        for var in xds.data_vars:
+            xds[var].attrs["units"] = dummy_xds.attrs["units"]
+
+    return xds
+
+
+def _canonicalise_principal_vectors(
+    e_1U: np.ndarray | xr.DataArray,
+    e_1V: np.ndarray | xr.DataArray,
+    e_2U: np.ndarray | xr.DataArray,
+    e_2V: np.ndarray | xr.DataArray,
+) -> tuple[
+    np.ndarray | xr.DataArray,
+    np.ndarray | xr.DataArray,
+    np.ndarray | xr.DataArray,
+    np.ndarray | xr.DataArray,
+]:
+    """Make principal-vector signs deterministic for downstream comparison."""
+
+    def canonical_sign(u: np.ndarray | xr.DataArray, v: np.ndarray | xr.DataArray):
+        sign = xr.where(u < 0, -1, 1) if isinstance(u, xr.DataArray) else np.where(u < 0, -1, 1)
+        if isinstance(u, xr.DataArray):
+            sign = xr.where(u == 0, xr.where(v < 0, -1, 1), sign)
+        else:
+            sign = np.where(u == 0, np.where(v < 0, -1, 1), sign)
+        return sign
+
+    sign_1 = canonical_sign(e_1U, e_1V)
+    sign_2 = canonical_sign(e_2U, e_2V)
+
+    return e_1U * sign_1, e_1V * sign_1, e_2U * sign_2, e_2V * sign_2
+
+
 @overload
 def logarithmic(
     vx: np.ndarray,
@@ -297,7 +398,7 @@ def nominal(
 
 
 @overload
-def _principal_eigenvalues(
+def _principal_analytic_vectors(
     e_xx: xr.DataArray,
     e_yy: xr.DataArray,
     e_xy: xr.DataArray,
@@ -306,7 +407,7 @@ def _principal_eigenvalues(
 
 
 @overload
-def _principal_eigenvalues(
+def _principal_analytic_vectors(
     e_xx: np.ndarray,
     e_yy: np.ndarray,
     e_xy: np.ndarray,
@@ -314,7 +415,7 @@ def _principal_eigenvalues(
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]: ...
 
 
-def _principal_eigenvalues(
+def _principal_analytic_vectors(
     e_xx: np.ndarray | xr.DataArray,
     e_yy: np.ndarray | xr.DataArray,
     e_xy: np.ndarray | xr.DataArray,
@@ -324,9 +425,20 @@ def _principal_eigenvalues(
     | xr.Dataset
 ):
     r"""
-    Calculates the directions of principal strains from $\dot{\varepsilon}_{xx}$, 
-    $\dot{\varepsilon}_{yy}$, and $\dot{\varepsilon}_{xy}$ strain
-    rates.
+    Calculates principal strain magnitudes and directions from
+    $\dot{\varepsilon}_{xx}$, $\dot{\varepsilon}_{yy}$, and $\dot{\varepsilon}_{xy}$
+    strain rates.
+
+    Principal direction is computed from the closed-form angle equation
+
+    $$
+    	\theta = \frac{1}{2} \arctan2\left(2\dot{\varepsilon}_{xy},
+    \dot{\varepsilon}_{xx} - \dot{\varepsilon}_{yy}\right),
+    $$
+
+    and the second principal direction is taken as $\theta + \pi/2$.
+    The returned U and V components are scaled by the corresponding principal
+    strain magnitude.
 
     Accepts numpy arrays or xarray DataArrays. Output type will match the input.
 
@@ -354,6 +466,86 @@ def _principal_eigenvalues(
         dummy_xds = e_xx * 0
         if "units" in e_xx.attrs:
             dummy_xds.attrs["units"] = e_xx.attrs["units"]
+        output = "xarray"
+    elif _all_numpy(e_xx, e_yy, e_xy):
+        output = "numpy"
+    else:
+        raise ValueError(
+            f"Input strain rate fields must be all the same type and either np.ndarray or xr.DataArray."
+        )
+
+    magnitudes = _principal_magnitudes(e_xx, e_yy, e_xy, unit_time=unit_time)
+    if output == "xarray":
+        e_1 = magnitudes["e_1"]
+        e_2 = magnitudes["e_2"]
+    else:
+        e_1, e_2 = magnitudes
+    theta = 0.5 * np.arctan2(2 * e_xy, e_xx - e_yy)
+
+    e_1U = e_1 * np.cos(theta)
+    e_1V = e_1 * np.sin(theta)
+    e_2U = -e_2 * np.sin(theta)
+    e_2V = e_2 * np.cos(theta)
+    e_1U, e_1V, e_2U, e_2V = _canonicalise_principal_vectors(
+        e_1U, e_1V, e_2U, e_2V
+    )
+
+    if output == "xarray":
+        return _principal_vector_dataset(
+            template=dummy_xds,
+            e_1=e_1,
+            e_1U=e_1U,
+            e_1V=e_1V,
+            e_2=e_2,
+            e_2U=e_2U,
+            e_2V=e_2V,
+            unit_time=unit_time,
+        )
+    else:
+        return e_1, e_1U, e_1V, e_2, e_2U, e_2V
+
+
+@overload
+def _principal_eigenvectors(
+    e_xx: xr.DataArray,
+    e_yy: xr.DataArray,
+    e_xy: xr.DataArray,
+    unit_time: Optional[str] = None,
+) -> xr.Dataset: ...
+
+
+@overload
+def _principal_eigenvectors(
+    e_xx: np.ndarray,
+    e_yy: np.ndarray,
+    e_xy: np.ndarray,
+    unit_time: Optional[str] = None,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]: ...
+
+
+def _principal_eigenvectors(
+    e_xx: np.ndarray | xr.DataArray,
+    e_yy: np.ndarray | xr.DataArray,
+    e_xy: np.ndarray | xr.DataArray,
+    unit_time: Optional[str] = None,
+) -> (
+    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+    | xr.Dataset
+):
+    r"""
+    Calculates principal strain magnitudes and directions from the eigenvalue
+    decomposition of the 2-D strain-rate tensor.
+
+    Accepts numpy arrays or xarray DataArrays. Output type will match the input.
+    """
+
+    if unit_time is not None:
+        unit_time = _sanitise_unit_time(unit_time)
+
+    if _all_xarray(e_xx, e_yy, e_xy):
+        dummy_xds = e_xx * 0
+        if "units" in e_xx.attrs:
+            dummy_xds.attrs["units"] = e_xx.attrs["units"]
         e_xx = e_xx.values
         e_yy = e_yy.values
         e_xy = e_xy.values
@@ -368,39 +560,21 @@ def _principal_eigenvalues(
     e_1, e_1U, e_1V, e_2, e_2U, e_2V = _principal_strain_rate_eigenvalues(
         e_xx, e_yy, e_xy
     )
+    e_1U, e_1V, e_2U, e_2V = _canonicalise_principal_vectors(
+        e_1U, e_1V, e_2U, e_2V
+    )
 
     if output == "xarray":
-        xds = xr.Dataset(
-            data_vars={
-                "e_1": dummy_xds + e_1,
-                "e_1U": dummy_xds + e_1U,
-                "e_1V": dummy_xds + e_1V,
-                "e_2": dummy_xds + e_2,
-                "e_2U": dummy_xds + e_2U,
-                "e_2V": dummy_xds + e_2V,
-            }
+        return _principal_vector_dataset(
+            template=dummy_xds,
+            e_1=e_1,
+            e_1U=e_1U,
+            e_1V=e_1V,
+            e_2=e_2,
+            e_2U=e_2U,
+            e_2V=e_2V,
+            unit_time=unit_time,
         )
-        xds.data_vars["e_1"].attrs["long_name"] = "First Principal Strain Rate"
-        xds.data_vars["e_1U"].attrs[
-            "long_name"
-        ] = "U Component of First Principal Strain Rate"
-        xds.data_vars["e_1V"].attrs[
-            "long_name"
-        ] = "V Component of First Principal Strain Rate"
-        xds.data_vars["e_2"].attrs["long_name"] = "Second Principal Strain Rate"
-        xds.data_vars["e_2U"].attrs[
-            "long_name"
-        ] = "U Component of Second Principal Strain Rate"
-        xds.data_vars["e_2V"].attrs[
-            "long_name"
-        ] = "V Component of Second Principal Strain Rate"
-        if unit_time is not None:
-            for var in xds.data_vars:
-                xds[var].attrs["units"] = f"{unit_time}$^{{-1}}$"
-        elif "units" in dummy_xds.attrs:
-            for var in xds.data_vars:
-                xds[var].attrs["units"] = dummy_xds.attrs["units"]
-        return xds
     else:
         return e_1, e_1U, e_1V, e_2, e_2U, e_2V
 
@@ -501,7 +675,8 @@ def principal(
     e_yy: np.ndarray,
     e_xy: np.ndarray,
     unit_time: Optional[str] = None,
-    output: Literal["directions", "magnitudes"] = "directions",
+    method: Literal["eigen", "analytic"] = "eigen",
+    vectors: bool = True,
 ) -> (
     Tuple[np.ndarray, np.ndarray]
     | Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]
@@ -514,7 +689,8 @@ def principal(
     e_yy: xr.DataArray,
     e_xy: xr.DataArray,
     unit_time: Optional[str] = None,
-    output: Literal["directions", "magnitudes"] = "directions",
+    method: Literal["eigen", "analytic"] = "eigen",
+    vectors: bool = True,
 ) -> xr.Dataset: ...
 
 
@@ -523,7 +699,8 @@ def principal(
     e_yy: np.ndarray | xr.DataArray,
     e_xy: np.ndarray | xr.DataArray,
     unit_time: Optional[str] = None,
-    output: Literal["eigenvectors", "magnitudes"] = "eigenvectors",
+    method: Literal["eigen", "analytic"] = "eigen",
+    vectors: bool = True,
 ) -> (
     Tuple[np.ndarray, np.ndarray]
     | Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]
@@ -535,12 +712,13 @@ def principal(
 
     Accepts numpy arrays or xarray DataArrays. Output type will match the input.
 
-    If `output = "eigenvectors"`, principal strain directions are calculated as
-    eigenvectors and the directional strain rates are returned as e_1, e_1U,
-    e_1V, e_2, e_2U, e_2V. If `output = "magnitudes"`, principal strain rate
-    magnitudes are calculated following methods in Nye (1959) and Harper et al.
-    (1998) and returned as e_1 and e_2. This is quicker to compute, but only
-    returns magnitude values.
+    If `method = "eigen"`, principal strain magnitudes and directions are
+    calculated from the eigenvalue decomposition of the strain-rate tensor.
+    If `method = "analytic"`, principal strain magnitudes are calculated
+    using the closed-form equation from Nye (1959), principal directions are
+    calculated from the angle equation, and the directional strain rates are
+    returned as `e_1`, `e_1U`, `e_1V`, `e_2`, `e_2U`, `e_2V`. If `vectors = False`, only
+    the principal magnitudes `e_1` and `e_2` are returned.
 
     Args:
         e_xx (np.ndarray | xr.DataArray): Array of strain rate in xx direction
@@ -548,25 +726,65 @@ def principal(
         e_xy (np.ndarray | xr.DataArray): Array of strain rate in xy direction
         unit_time (str, optional): Set to apply a time unit to the output strain
             rates. Set to 'a' for annual or 'd' for daily. Defaults to None.
-        output (str, optional): Set to "eigenvectors" or "magnitudes". Defaults to
-            "eigenvectors".
+        method (str, optional): Set to "eigen" or "analytic". Defaults to
+            "eigen".
+        vectors (bool, optional): If True, return principal direction components
+            as well as magnitudes. If False, return magnitudes only. Defaults to
+            True.
 
     Returns:
         Tuple[np.ndarray, np.ndarray] |  Tuple[np.ndarray, np.ndarray, np.ndarray,
             np.ndarray, np.ndarray, np.ndarray]| xr.Dataset: Returns the first and
-            second principal strain rates. If `output = "eigenvectors"`, returns the e_1,
-            e_1U, e_1V, e_2, e_2U, and e_2V first and second principal strain rates.
-            *U and *V denote the U and V components of the principal strain rate.
-            Returns either tuple of six numpy arrays or an xarray Dataset, depending
-            on the input type. If `output = "magnitudes"`, returns the e_1 and e_2
-            strain rates. Reurns either tuple of two numpy arrays or an xarray
-            Dataset, depending on the input type.
+            second principal strain rates. If `vectors = True`, returns the e_1,
+            e_1U, e_1V, e_2, e_2U, and e_2V first and second principal strain
+            rates. *U and *V denote the U and V components of the principal
+            strain rate. Returns either tuple of six numpy arrays or an xarray
+            Dataset, depending on the input type. If `vectors = False`, returns
+            the e_1 and e_2 strain rates. Returns either tuple of two numpy
+            arrays or an xarray Dataset, depending on the input type.
     """
 
-    if output == "eigenvectors":
-        return _principal_eigenvalues(e_xx, e_yy, e_xy, unit_time=unit_time)
-    elif output == "magnitudes":
-        return _principal_magnitudes(e_xx, e_yy, e_xy, unit_time=unit_time)
+    if _all_xarray(e_xx, e_yy, e_xy):
+        dummy_xds = e_xx * 0
+        if "units" in e_xx.attrs:
+            dummy_xds.attrs["units"] = e_xx.attrs["units"]
+        output = "xarray"
+    elif _all_numpy(e_xx, e_yy, e_xy):
+        dummy_xds = None
+        output = "numpy"
+    else:
+        raise ValueError(
+            f"Input strain rate fields must be all the same type and either np.ndarray or xr.DataArray."
+        )
+
+    if not vectors:
+        if method == "eigen":
+            principal_output = _principal_eigenvectors(
+                e_xx, e_yy, e_xy, unit_time=unit_time
+            )
+        elif method == "analytic":
+            principal_output = _principal_analytic_vectors(
+                e_xx, e_yy, e_xy, unit_time=unit_time
+            )
+        else:
+            raise ValueError("method must be 'eigen' or 'analytic'")
+
+        if output == "xarray":
+            return _principal_magnitude_dataset(
+                template=dummy_xds,
+                e_1=principal_output["e_1"],
+                e_2=principal_output["e_2"],
+                unit_time=unit_time,
+            )
+        else:
+            return principal_output[0], principal_output[3]
+
+    if method == "eigen":
+        return _principal_eigenvectors(e_xx, e_yy, e_xy, unit_time=unit_time)
+    elif method == "analytic":
+        return _principal_analytic_vectors(e_xx, e_yy, e_xy, unit_time=unit_time)
+    else:
+        raise ValueError("method must be 'eigen' or 'analytic'")
 
 
 @overload

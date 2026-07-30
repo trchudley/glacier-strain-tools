@@ -171,3 +171,48 @@ def test_flow_direction_xarray_strips_nonessential_attrs_and_keeps_geospatial():
     assert angle.attrs["projection"] == 3413
     assert angle.attrs["long_name"] == "Flow Direction"
     assert angle.attrs["units"] == "radians"
+
+
+def test_principal_modes_agree_with_each_other():
+    rng = np.random.default_rng(7)
+    e_xx = xr.DataArray(rng.normal(size=(5, 4)) * 1.0e-3, dims=("y", "x"))
+    e_yy = xr.DataArray(rng.normal(size=(5, 4)) * 1.0e-3, dims=("y", "x"))
+    e_xy = xr.DataArray(rng.normal(size=(5, 4)) * 1.0e-3, dims=("y", "x"))
+
+    eigenvalue_mode = strain.principal(
+        e_xx, e_yy, e_xy, unit_time="a", method="eigen", vectors=True
+    )
+    equation_mode = strain.principal(
+        e_xx, e_yy, e_xy, unit_time="a", method="analytic", vectors=True
+    )
+    eigen_magnitudes = strain.principal(
+        e_xx, e_yy, e_xy, unit_time="a", method="eigen", vectors=False
+    )
+    analytic_magnitudes = strain.principal(
+        e_xx, e_yy, e_xy, unit_time="a", method="analytic", vectors=False
+    )
+
+    assert set(eigenvalue_mode.data_vars) == {"e_1", "e_1U", "e_1V", "e_2", "e_2U", "e_2V"}
+    assert set(equation_mode.data_vars) == {"e_1", "e_1U", "e_1V", "e_2", "e_2U", "e_2V"}
+    assert set(eigen_magnitudes.data_vars) == {"e_1", "e_2"}
+    assert set(analytic_magnitudes.data_vars) == {"e_1", "e_2"}
+
+    assert_allclose(eigenvalue_mode["e_1"], equation_mode["e_1"], rtol=1e-6, atol=1e-12)
+    assert_allclose(eigenvalue_mode["e_2"], equation_mode["e_2"], rtol=1e-6, atol=1e-12)
+    assert_allclose(
+        eigenvalue_mode["e_1"], eigen_magnitudes["e_1"], rtol=1e-6, atol=1e-12
+    )
+    assert_allclose(
+        eigenvalue_mode["e_2"], eigen_magnitudes["e_2"], rtol=1e-6, atol=1e-12
+    )
+    assert_allclose(
+        equation_mode["e_1"], analytic_magnitudes["e_1"], rtol=1e-6, atol=1e-12
+    )
+    assert_allclose(
+        equation_mode["e_2"], analytic_magnitudes["e_2"], rtol=1e-6, atol=1e-12
+    )
+
+    assert_allclose(eigenvalue_mode["e_1U"], equation_mode["e_1U"], rtol=1e-6, atol=1e-12)
+    assert_allclose(eigenvalue_mode["e_1V"], equation_mode["e_1V"], rtol=1e-6, atol=1e-12)
+    assert_allclose(eigenvalue_mode["e_2U"], equation_mode["e_2U"], rtol=1e-6, atol=1e-12)
+    assert_allclose(eigenvalue_mode["e_2V"], equation_mode["e_2V"], rtol=1e-6, atol=1e-12)
