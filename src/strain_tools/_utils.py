@@ -141,15 +141,15 @@ def flow_direction(
             f"Input velocity fields must be all the same type and either np.ndarray or xr.DataArray."
         )
 
-    angle = np.degrees(np.arctan(vy / vx))
-    angle = np.where(vx > 0, angle, angle + 180)
+    # angle = np.degrees(np.arctan(vy / vx))
+    # angle = np.where(vx > 0, angle, angle + 180)
 
-    # # from -180 to 180, following Bindschadler et al. 1996
-    angle = np.where(angle > 180, angle - 360, angle)
+    # # # from -180 to 180, following Bindschadler et al. 1996
+    # angle = np.where(angle > 180, angle - 360, angle)
 
-    angle = np.deg2rad(angle)
+    # angle = np.deg2rad(angle)
 
-    # NB: the above can be replaced with np.arctan2(vy, vx) to get the same result, but the above is more explicit and easier to follow.
+    angle = np.arctan2(vy, vx) 
 
     if output == "xarray":
 
