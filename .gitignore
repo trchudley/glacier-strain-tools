@@ -7,3 +7,4 @@ dist/
 .venv/
 .venv-ci/
 .pytest_cache/
+.DS_Store
