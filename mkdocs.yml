@@ -1,6 +1,7 @@
 site_name: Glacier Strain Tools
 site_description: Python tools to derive glacier strain rates
-site_url: https://trchudley.github.io/glacier-strain-tools/
+# site_url: https://trchudley.github.io/glacier-strain-tools/
+site_url: https://glacier-strain-tools.readthedocs.io/
 repo_url: https://github.com/trchudley/glacier-strain-tools/
 repo_name: "glacier-strain-tools"
 
@@ -103,6 +104,7 @@ markdown_extensions:
 extra_javascript:
   - javascripts/mathjax.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  - javascripts/readthedocs.js
 
 extra_css:
   - stylesheets/extra.css
