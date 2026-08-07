@@ -9,7 +9,7 @@ However, `strain_tools` at its core is a tool to faciliate implementation of app
 Process | Following...
 --- | ---
 Logarithmic strain rate | Nye _et al._ (1959); Alley _et al._ (2018)
-Principal strain rate (magnitudes) | Nye (1959)
+Principal strain rate (analytical approach) | Nye (1959)
 Longitudinal, transverse, and/or shear strain | Bindschadler _et al._ (1996)
 Strain rate uncertainty | Poinar & Andrews (2021)
 Deviatoric stress parameters | Cuffey & Paterson (2010)

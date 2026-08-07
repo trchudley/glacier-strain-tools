@@ -1,6 +1,8 @@
 # glacier-strain-tools
 
-Tools for deriving surface-parallel strain rates from glacier velocity fields.
+[![conda-forge version](https://anaconda.org/conda-forge/glacier-strain-tools/badges/version.svg)](https://anaconda.org/conda-forge/glacier-strain-tools) [![PyPI version](https://badge.fury.io/py/glacier-strain-tools.svg)](https://pypi.org/project/glacier-strain-tools/) [![Unit Tests](https://github.com/trchudley/glacier-strain-tools/actions/workflows/unit-test.yml/badge.svg)](https://github.com/trchudley/glacier-strain-tools/actions/workflows/unit-test.yml) 
+
+Tools for deriving surface-parallel strain rates and directions from glacier velocity fields.
 
 ## Installation
 

@@ -180,9 +180,9 @@ def logarithmic(
             rates. Set to 'a' for annual or 'd' for daily. Defaults to None.
 
     Returns:
-        Tuple[np.ndarray, np.ndarray, np.ndarray] | xr.DataArray: Returns the e_xx,
+        Tuple[np.ndarray, np.ndarray, np.ndarray] | xr.Dataset: Returns the e_xx,
             e_yy, and e_xy strain rates, either as a tuple of three numpy arrays or
-            as an xarray DataArray, depending on the input type.
+            as an xarray Dataset, depending on the input type.
     """
 
     # Sanitise inputs
@@ -288,9 +288,9 @@ def nominal(
             rates. Set to 'a' for annual or 'd' for daily. Defaults to None.
 
     Returns:
-        Tuple[np.ndarray, np.ndarray, np.ndarray] | xr.DataArray: Returns the e_xx,
+        Tuple[np.ndarray, np.ndarray, np.ndarray] | xr.Dataset: Returns the e_xx,
             e_yy, and e_xy strain rates, either as a tuple of three numpy arrays or
-            as an xarray DataArray, depending on the input type.
+            as an xarray Dataset, depending on the input type.
     """
 
     # Sanitise inputs

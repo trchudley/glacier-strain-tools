@@ -2,7 +2,7 @@
 title: Home
 --- -->
 
-# Glacier Strain Tools
+# Glacier Strain Tools [![conda-forge version](https://anaconda.org/conda-forge/glacier-strain-tools/badges/version.svg)](https://anaconda.org/conda-forge/glacier-strain-tools) [![PyPI version](https://badge.fury.io/py/glacier-strain-tools.svg)](https://pypi.org/project/glacier-strain-tools/)
 
 
 <div style="text-align: center;">

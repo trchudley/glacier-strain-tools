@@ -33,7 +33,7 @@ theme:
   icon:
     repo: fontawesome/brands/github
   features:
-    - navigation.instant
+    # - navigation.instant
     # - navigation.tabs
     # - navigation.tabs.sticky
     - navigation.sections
@@ -65,9 +65,9 @@ nav:
     - Python: python.ipynb
     - Command Line: commandline.md
   - API: 
-    - Strain rates: api/strain.md
-    - Stress: api/stress.md
-    - Plotting Tools: api/plot.md
+    - strain: api/strain.md
+    - stress: api/stress.md
+    - plot: api/plot.md
   - Appendix:
     - Contribution Guidelines: contributing.md
     - Versions: versions.md
@@ -82,6 +82,11 @@ plugins:
       handlers:
         python:
           paths: [src]
+          options:
+            show_root_full_path: true
+            show_root_members_full_path: true
+            # show_source: true
+            # show_signature_annotations: true
   # - privacy
 
 markdown_extensions:
