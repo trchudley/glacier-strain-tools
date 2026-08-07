@@ -1,6 +1,6 @@
 # glacier-strain-tools
 
-[![conda-forge version](https://anaconda.org/conda-forge/glacier-strain-tools/badges/version.svg)](https://anaconda.org/conda-forge/glacier-strain-tools) [![PyPI version](https://badge.fury.io/py/glacier-strain-tools.svg)](https://pypi.org/project/glacier-strain-tools/) [![Unit Tests](https://github.com/trchudley/glacier-strain-tools/actions/workflows/unit-test.yml/badge.svg)](https://github.com/trchudley/glacier-strain-tools/actions/workflows/unit-test.yml) 
+[![conda-forge version](https://anaconda.org/conda-forge/glacier-strain-tools/badges/version.svg)](https://anaconda.org/conda-forge/glacier-strain-tools) [![PyPI version](https://badge.fury.io/py/glacier-strain-tools.svg)](https://pypi.org/project/glacier-strain-tools/) [![Documentation Status](https://readthedocs.org/projects/glacier-strain-tools/badge/?version=latest)](https://glacier-strain-tools.readthedocs.io/en/latest/?badge=latest) [![Unit Tests](https://github.com/trchudley/glacier-strain-tools/actions/workflows/unit-test.yml/badge.svg)](https://github.com/trchudley/glacier-strain-tools/actions/workflows/unit-test.yml) 
 
 Tools for deriving surface-parallel strain rates and directions from glacier velocity fields.
 
@@ -51,11 +51,9 @@ logarithmic_strains = strain.logarithmic(
 
 ## Documentation
 
-Full documentation, theory notes, and API reference are available at the GitHub repo:
-
-[https://github.com/trchudley/glacier-strain-tools](tom.chudley@bristol.ac.uk).
+Full documentation, theory notes, and API reference are available on ReadTheDocs at [https://glacier-strain-tools.readthedocs.io](https://glacier-strain-tools.readthedocs.io).
 
 ## Contact
 
-Tom Chudley
-[tom.chudley@bristol.ac.uk](mailto:tom.chudley@bristol.ac.uk)
+Tom Chudley | [tom.chudley@bristol.ac.uk](mailto:tom.chudley@bristol.ac.uk)
+
