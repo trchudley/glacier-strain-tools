@@ -67,6 +67,7 @@ nav:
   - API: 
     - strain: api/strain.md
     - stress: api/stress.md
+    - flow_direction: api/flowdirection.md
     - plot: api/plot.md
   - Appendix:
     - Contribution Guidelines: contributing.md
@@ -83,10 +84,9 @@ plugins:
         python:
           paths: [src]
           options:
+            show_root_heading: true
             show_root_full_path: true
             show_root_members_full_path: true
-            # show_source: true
-            # show_signature_annotations: true
   # - privacy
 
 markdown_extensions:
