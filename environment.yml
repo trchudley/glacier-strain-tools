@@ -7,4 +7,5 @@ dependencies:
   - rioxarray 
   - numpy
   - numba
+  - scipy
   - matplotlib

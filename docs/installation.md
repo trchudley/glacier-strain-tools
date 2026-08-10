@@ -36,6 +36,7 @@ The module was developed using a `conda` installation of Python with the followi
 - `numpy`
 - `rioxarray`
 - `numba`
+- `scipy`
 - `matplotlib`
 
 It is recommended to install these dependencies into your conda environment from `conda-forge` before downloading this repository (an `environment.yml` is provided to aid with this). Once you have done this, install `strain_tools` from the top-level directory with `pip install -e .`.
